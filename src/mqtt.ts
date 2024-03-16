@@ -1,5 +1,5 @@
 import { MqttClient, connectAsync } from "mqtt";
-import devices from "./ha-devices.js";
+import { mapDevices } from "./ha/devices.js";
 import GlinetController from "./controller.js";
 
 export class Mqtt {
@@ -10,16 +10,14 @@ export class Mqtt {
   status: any;
   router!: GlinetController;
 
+  get devices() {
+    const { model, state } = this.router;
+    return mapDevices(state, model);
+  }
   get message() {
-    return JSON.stringify({ ...this.status.result, info: this.info.result });
+    return JSON.stringify(this.router.state);
   }
-  get model() {
-    return this.info?.result?.model;
-  }
-
   init = async (router: GlinetController) => {
-    this.info = router.info;
-    this.status = router.status;
     this.router = router;
     if (!this.client && this.host) {
       const client = await connectAsync(this.host);
@@ -43,7 +41,7 @@ export class Mqtt {
     // subscribe to ha device command topics
     this.client.subscribe([
       `homeassistant/status`,
-      `glinet-${this.model}/command`,
+      `glinet-${this.router.model}/command`,
     ]);
 
     this.client.on("message", async (t, buffer) => {
@@ -53,7 +51,7 @@ export class Mqtt {
       if (t === `homeassistant/status` && payload === "online")
         this.discovery();
 
-      if (t === `glinet-${this.model}/command`) {
+      if (t === `glinet-${this.router.model}/command`) {
         if (!this.router) return;
         const cmd = payload.split("=")[0];
         const value = payload.split("=")?.[1];
@@ -70,7 +68,7 @@ export class Mqtt {
         //   const json = JSON.parse(value);
         //   this.router.sendSms({ message: json.msg, recipient: json.to });
         // }
-        if (cmd === "restart") this.router.reboot();
+        if (cmd === "restart") this.router.system.reboot();
       }
     });
   };
@@ -84,15 +82,13 @@ export class Mqtt {
 
     // publish mqtt discovery devices
     let count = 0;
-    for (const [component, sensors] of Object.entries(
-      devices(this.status, this.model) || {}
-    )) {
+    for (const [component, sensors] of Object.entries(this.devices)) {
       for (const device of sensors) {
         await this.publish(
           JSON.stringify(device),
           `homeassistant/${component}/${device.unique_id.replace(
-            `glinet-${this.model}_`,
-            `glinet-${this.model}/`
+            `glinet-${this.router.model}_`,
+            `glinet-${this.router.model}/`
           )}/config`
         );
         count++;
@@ -106,11 +102,11 @@ export class Mqtt {
 
   publish = async (
     message = this.message,
-    topic = `glinet-${this.model}/attribute`
+    topic = `glinet-${this.router.model}/attribute`
   ) => {
     if (this.client) {
       await this.client.publishAsync(topic, message);
-      if (topic === `glinet-${this.model}/attribute`)
+      if (topic === `glinet-${this.router.model}/attribute`)
         console.log(
           `[mqtt] published ${++this.count} status messages since startup`
         );

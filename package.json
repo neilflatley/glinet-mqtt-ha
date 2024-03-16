@@ -5,7 +5,7 @@
   "main": "dist/app.js",
   "type": "module",
   "scripts": {
-    "src": "cross-env GLINET_PASSWORD=xxxx node --import tsx src/app.ts",
+    "src": "cross-env node --import tsx src/app.ts",
     "server": "node dist/app.js",
     "build": "swc src --out-dir dist",
     "build:watch": "swc src -w --out-dir dist",

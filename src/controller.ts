@@ -16,9 +16,22 @@ class GlinetController {
     return `${this.routerUri}/rpc`;
   }
 
-  info: any;
-  status: any;
   sid?: string; // Token to connect to router
+
+  get model() {
+    return this.system.info?.result?.model;
+  }
+  get state() {
+    const { modem, system } = this;
+    if (Object.keys(system.status.result).length)
+      return {
+        ...system.status.result,
+        system_info: system.info.result,
+        modem_status: modem.status.result,
+        modem_info: modem.info.result,
+      };
+    return null;
+  }
 
   constructor(
     host = process.env.GLINET_HOST,
@@ -29,52 +42,87 @@ class GlinetController {
     this.routerUri = `http://${this.host}`;
     console.log(`Connecting to ${this.routerUri}`);
   }
+  api = {
+    call: async (...params: [string, string] | [string, string, string]) => {
+      const [err, res] = await this.api.post([this.sid, ...params]);
+      if (err) throw err;
+      return res.data;
+    },
+    post: async (
+      params:
+        | [string | undefined, string, string]
+        | [string | undefined, string, string, string]
+        | { [param: string]: string },
+      method = "call"
+    ) => {
+      if (method === "call" && !this.sid) await this.login();
+      // Add latest sid to first array param
+      if (Array.isArray(params)) params[0] = this.sid;
 
-  post = async (
-    params: [string | undefined, string, string] | { [param: string]: string },
-    method = "call"
-  ) => {
-    if (method === "call" && !this.sid) await this.login();
-    // Add latest sid to first array param
-    if (Array.isArray(params)) params[0] = this.sid;
+      return to(
+        axios.post(this.api_uri, {
+          jsonrpc: "2.0",
+          method,
+          params,
+          id: 0,
+        })
+      );
+    },
+  };
+  modem = {
+    info: {} as any,
+    status: {} as any,
+    get_info: async () => {
+      this.modem.info = await this.api.call("modem", "get_info");
+      return this.modem.info;
+    },
+    get_status: async () => {
+      if (!Object.keys(this.modem.info).length) await this.modem.get_info();
+      this.modem.status = await this.api.call("modem", "get_status");
+      return this.modem.status;
+    },
+  };
+  system = {
+    info: {} as any,
+    status: {} as any,
+    get_info: async () => {
+      this.system.info = await this.api.call("system", "get_info");
+      return this.system.info;
+    },
+    get_status: async () => {
+      if (!Object.keys(this.system.info).length) await this.system.get_info();
+      this.system.status = await this.api.call("system", "get_status");
+      return this.system.status;
+    },
+    reboot: async () => {
+      const [err, res] = await this.api.post([, "system", "reboot"]);
+      if (err) throw err;
+      if (res.status > 200 && res.status < 400)
+        console.log("Restarting router...");
+    },
+  };
 
-    return to(
-      axios.post(this.api_uri, {
-        jsonrpc: "2.0",
-        method,
-        params,
-        id: 0,
-      })
-    );
+  refresh = async () => {
+    await this.system.get_status();
+    const promises = [this.modem.get_status()];
+
+    await Promise.all(promises);
+    this.publish();
+
+    return this.state;
   };
 
   publish = async () => {
     // requires process.env.MQTT_HOST set otherwise this safely does nothing
-    const { status = {}, info = {} } = this;
-
-    if (status && !mqtt.client) await mqtt.init(this);
+    if (Object.keys(this.system.status).length && !mqtt.client)
+      await mqtt.init(this);
     if (mqtt.client) await mqtt.publish();
-  };
-
-  refreshInfo = async () => {
-    const [err, res] = await this.post([this.sid, "system", "get_info"]);
-    if (err) throw err;
-    this.info = res.data;
-    return this.status;
-  };
-
-  refreshStatus = async () => {
-    if (!this.info) await this.refreshInfo();
-    const [err, res] = await this.post([this.sid, "system", "get_status"]);
-    if (err) throw err;
-    this.status = res.data;
-    return this.status;
   };
 
   login = async () => {
     try {
       // Step1: Get encryption parameters by challenge method
-      const [challengeErr, challengeResponse] = await this.post(
+      const [challengeErr, challengeResponse] = await this.api.post(
         {
           username: this.username,
         },
@@ -98,7 +146,7 @@ class GlinetController {
       const hash_value = crypto.createHash("md5").update(data).digest("hex");
 
       // Step4: Get sid by login
-      const [loginErr, loginResponse] = await this.post(
+      const [loginErr, loginResponse] = await this.api.post(
         {
           username: "root",
           hash: hash_value,
@@ -115,13 +163,6 @@ class GlinetController {
       console.error(`[glinet:login] ${error}`);
       throw error;
     }
-  };
-
-  reboot = async () => {
-    const [err, res] = await this.post([, "system", "reboot"]);
-    if (err) throw err;
-    if (res.status > 200 && res.status < 400)
-      console.log("Restarting router...");
   };
 
   // readSms = async () => {
@@ -225,7 +266,7 @@ class GlinetController {
               })
               .then((response) => {
                 console.log(JSON.stringify(response.data));
-                this.status = response.data;
+                this.system.status = response.data;
               })
               .catch((error) => {
                 console.error("Request Exception:", error);

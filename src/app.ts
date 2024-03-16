@@ -1,9 +1,9 @@
 import Fastify, { FastifyInstance } from "fastify";
 import GlinetController from "./controller.js";
+import { mqtt } from "./mqtt.js";
 
 const router = new GlinetController();
-await router.refreshStatus();
-router.publish();
+await router.refresh();
 
 const server: FastifyInstance = Fastify({
   logger: false,
@@ -17,7 +17,7 @@ server.get("/ping", async (request, reply) => {
 server.get("/call", async (request, reply) => {
   try {
     const params = JSON.parse((request.query as any).params) || [];
-    const [err, resp] = await router.post(params);
+    const [err, resp] = await router.api.post(params);
 
     reply.type("application/json").code(200);
     return resp?.data;
@@ -29,12 +29,38 @@ server.get("/call", async (request, reply) => {
   }
 });
 
-server.get("/info", async (request, reply) => {
+server.get("/ha-devices", async (request, reply) => {
   try {
-    await router.refreshInfo();
+    reply.type("application/json").code(200);
+    return mqtt.devices;
+  } catch (error) {
+    console.log(error);
+
+    reply.type("application/json").code(500);
+    return { error };
+  }
+});
+
+server.get("/ha-attribute", async (request, reply) => {
+  try {
+    const attribute = router.state;
 
     reply.type("application/json").code(200);
-    return router.info;
+    return attribute;
+  } catch (error) {
+    console.log(error);
+
+    reply.type("application/json").code(500);
+    return { error };
+  }
+});
+
+server.get("/refresh", async (request, reply) => {
+  try {
+    await router.refresh();
+
+    reply.type("application/json").code(200);
+    return router.state;
   } catch (error) {
     console.log(error);
 
@@ -45,11 +71,11 @@ server.get("/info", async (request, reply) => {
 
 server.get("/status", async (request, reply) => {
   try {
-    await router.refreshStatus();
+    await router.system.get_status();
     router.publish();
 
     reply.type("application/json").code(200);
-    return router.status;
+    return router.system.status;
   } catch (error) {
     console.log(error);
 
@@ -63,7 +89,7 @@ server.get("/login", async (request, reply) => {
     await router.login();
 
     reply.type("application/json").code(200);
-    return router.status;
+    return router.state;
   } catch (error) {
     console.log(error);
 
@@ -75,7 +101,7 @@ server.get("/login", async (request, reply) => {
 server.get("/reboot", async (request, reply) => {
   try {
     console.log("going to reboot the router now");
-    await router.reboot();
+    await router.system.reboot();
     reply.type("application/json").code(200);
     return { reboot: "ok" };
   } catch (error) {
@@ -103,7 +129,7 @@ server.post<{ Body: { reboot: "ok" } }>(
     try {
       if (request.body.reboot === "ok") {
         console.log("going to reboot the router now");
-        await router.reboot();
+        await router.system.reboot();
         reply.type("application/json").code(200);
         return { reboot: "ok" };
       } else {
