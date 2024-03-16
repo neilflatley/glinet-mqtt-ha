@@ -18,6 +18,12 @@ class GlinetController {
 
   sid?: string; // Token to connect to router
 
+  get bus() {
+    return (
+      this.system.info?.result?.hardware_feature.build_in_modem.split(",")[0] ||
+      "0001:01:00.0"
+    );
+  }
   get model() {
     return this.system.info?.result?.model;
   }
@@ -29,6 +35,7 @@ class GlinetController {
         system_info: system.info.result,
         modem_status: modem.status.result,
         modem_info: modem.info.result,
+        modem_cells_info: modem.cells_info.result,
       };
     return null;
   }
@@ -43,7 +50,7 @@ class GlinetController {
     console.log(`Connecting to ${this.routerUri}`);
   }
   api = {
-    call: async (...params: [string, string] | [string, string, string]) => {
+    call: async (...params: [string, string] | [string, string, any]) => {
       const [err, res] = await this.api.post([this.sid, ...params]);
       if (err) throw err;
       return res?.data;
@@ -51,7 +58,7 @@ class GlinetController {
     post: async (
       params:
         | [string | undefined, string, string]
-        | [string | undefined, string, string, string]
+        | [string | undefined, string, string, any]
         | { [param: string]: string },
       method = "call"
     ): Promise<[Error, undefined] | [null, AxiosResponse]> => {
@@ -80,8 +87,16 @@ class GlinetController {
     },
   };
   modem = {
+    cells_info: {} as any,
     info: {} as any,
     status: {} as any,
+    get_cells_info: async () => {
+      // if (!Object.keys(this.modem.info).length) await this.modem.get_info();
+      this.modem.cells_info = await this.api.call("modem", "get_cells_info", {
+        bus: this.bus,
+      });
+      return this.modem.info;
+    },
     get_info: async () => {
       this.modem.info = await this.api.call("modem", "get_info");
       return this.modem.info;
@@ -113,8 +128,12 @@ class GlinetController {
   };
 
   refresh = async () => {
-    await this.system.get_status();
-    const promises = [this.modem.get_status()];
+    const { modem, system } = this;
+    await system.get_status();
+    const promises = [
+      modem.get_status(),
+      modem.get_cells_info(),
+    ];
 
     await Promise.all(promises);
     this.publish();

@@ -205,16 +205,16 @@ export const devices = (model: string) => ({
       json_attributes_template: `{%- set a = namespace(value={}) -%}{%- for n in value_json.network|list -%}{%- set a.value = dict(a.value, **{n.interface: { "online": n.online, "up": n.up }}) -%}{%- endfor %}{{ a.value | tojson }}`,
       entity_category: `diagnostic`,
     },
-    // {
-    //   name: `WWAN band`,
-    //   unique_id: `glinet_${model}_wwan_band`,
-    //   object_id: `glinet_${model}_wwan_band`,
-    //   value_template: `{{ value_json.wwanadv.curBand }}`,
-    //   icon: `mdi:signal-variant`,
-    //   json_attributes_topic: `glinet_${model}/attribute`,
-    //   json_attributes_template: `{{ value_json.wwanadv | tojson }}`,
-    //   entity_category: `diagnostic`,
-    // },
+    {
+      name: `WWAN band`,
+      unique_id: `glinet_${model}_wwan_band`,
+      object_id: `glinet_${model}_wwan_band`,
+      value_template: `{{ value_json.modem_cells_info.cells[0].mode }}`,
+      icon: `mdi:signal-variant`,
+      json_attributes_topic: `glinet_${model}/attribute`,
+      json_attributes_template: `{{ value_json.modem_cells_info.cells[0] | tojson }}`,
+      entity_category: `diagnostic`,
+    },
   ],
   // text: [
   //   {
