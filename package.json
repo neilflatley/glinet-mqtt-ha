@@ -1,0 +1,43 @@
+{
+  "name": "glinet-mqtt-ha",
+  "version": "1.0.0",
+  "description": "Simple REST API to fetch status data and restart / reboot the router with Home Assistant MQTT integration",
+  "main": "dist/app.js",
+  "type": "module",
+  "scripts": {
+    "src": "cross-env GLINET_PASSWORD=xxxx node --import tsx src/app.ts",
+    "server": "node dist/app.js",
+    "build": "swc src --out-dir dist",
+    "build:watch": "swc src -w --out-dir dist",
+    "start:dev": "concurrently \"npm run build:watch\" \"nodemon --watch 'dist/**/*.js' -e js dist/app.js\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Neil Flatley",
+  "repository": {
+    "url": "https://github.com/neilflatley/glinet-mqtt-ha"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@swc/cli": "^0.1.63",
+    "@swc/core": "^1.3.100",
+    "@swc/plugin-transform-imports": "^1.5.105",
+    "@types/node": "^20.10.2",
+    "@types/request": "^2.48.12",
+    "concurrently": "^8.2.2",
+    "nodemon": "^3.0.2",
+    "typescript": "^5.3.2"
+  },
+  "dependencies": {
+    "await-to-js": "^3.0.0",
+    "axios": "^1.6.7",
+    "cross-env": "^7.0.3",
+    "fastify": "^4.24.3",
+    "mqtt": "^5.3.5",
+    "tsx": "^4.6.2",
+    "unixpass": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=20.6"
+  }
+}
