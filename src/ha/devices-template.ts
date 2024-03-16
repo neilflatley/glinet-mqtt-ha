@@ -9,7 +9,7 @@ export const devices = (model: string) => ({
       payload_off: false,
       device_class: `connectivity`,
       json_attributes_topic: `glinet_${model}/attribute`,
-      json_attributes_template: `{{ value_json.network | tojson }}`,
+      json_attributes_template: `{{ value_json | tojson }}`,
       icon: `mdi:router-network-wireless`,
     },
     {
@@ -147,6 +147,8 @@ export const devices = (model: string) => ({
       object_id: `glinet_${model}_connected_network`,
       value_template: `{{ value_json.modem_status.modems[0].simcard.carrier }}`,
       icon: `mdi:cellphone-text`,
+      json_attributes_topic: `glinet_${model}/attribute`,
+      json_attributes_template: `{{ value_json.modem_status.modems[0] | tojson }}`,
     },
     {
       name: `Router`,
