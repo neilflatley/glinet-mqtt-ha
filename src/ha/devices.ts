@@ -23,7 +23,7 @@ export const mapDevices = (state: GlinetController['state'], model: string) => {
       devices.map<Sensor>((d: any) => {
         if (!d.device) d.device = deviceAttribute;
         if (!d.state_topic && ![`button`, `text`].includes(component))
-          d.state_topic = `glinet_${model}/attribute`;
+          d.state_topic = `glinet-${model}/attribute`;
         return d;
       }),
     ])

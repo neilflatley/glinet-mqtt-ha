@@ -102,11 +102,11 @@ export class Mqtt {
 
   publish = async (
     message = this.message,
-    topic = `glinet_${this.router.model}/attribute`
+    topic = `glinet-${this.router.model}/attribute`
   ) => {
     if (this.client) {
       await this.client.publishAsync(topic, message);
-      if (topic === `glinet_${this.router.model}/attribute`)
+      if (topic === `glinet-${this.router.model}/attribute`)
         console.log(
           `[mqtt] published ${++this.count} status messages since startup`
         );
