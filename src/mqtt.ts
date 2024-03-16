@@ -10,8 +10,11 @@ export class Mqtt {
   status: any;
   router!: GlinetController;
 
+  get message() {
+    return JSON.stringify({ ...this.status.result, info: this.info.result });
+  }
   get model() {
-    return this.info?.model;
+    return this.info?.result?.model;
   }
 
   init = async (router: GlinetController) => {
@@ -82,7 +85,7 @@ export class Mqtt {
     // publish mqtt discovery devices
     let count = 0;
     for (const [component, sensors] of Object.entries(
-      devices(this.status, this.info, this.model) || {}
+      devices(this.status, this.model) || {}
     )) {
       for (const device of sensors) {
         await this.publish(
@@ -97,12 +100,12 @@ export class Mqtt {
     }
     if (count) console.log(`[mqtt] published ${count} discovery messages`);
     setTimeout(() => {
-      this.publish(JSON.stringify({ ...this.status, ...this.info }));
+      this.publish();
     }, 5000);
   };
 
   publish = async (
-    message: string,
+    message = this.message,
     topic = `glinet-${this.model}/attribute`
   ) => {
     if (this.client) {

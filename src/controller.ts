@@ -53,7 +53,7 @@ class GlinetController {
     const { status = {}, info = {} } = this;
 
     if (status && !mqtt.client) await mqtt.init(this);
-    if (mqtt.client) await mqtt.publish(JSON.stringify({ ...status, ...info }));
+    if (mqtt.client) await mqtt.publish();
   };
 
   refreshInfo = async () => {

@@ -8,7 +8,7 @@ const device = (json: any) => ({
   sw_version: `${json.firmware_version}`,
 });
 
-export default (status: any, info: any, model: string) =>
+export default (status: any, model: string) =>
   !status?.result
     ? undefined
     : Object.fromEntries(
@@ -227,7 +227,7 @@ export default (status: any, info: any, model: string) =>
         }).map(([component, devices]) => [
           component,
           devices.map<Sensor>((d: any) => {
-            if (!d.device) d.device = device(info);
+            if (!d.device) d.device = device(status.info);
             if (!d.state_topic && ![`button`, `text`].includes(component))
               d.state_topic = `glinet_${model}/attribute`;
             return d;
