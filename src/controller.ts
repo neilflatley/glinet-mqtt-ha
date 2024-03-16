@@ -1,7 +1,7 @@
 import { to } from "await-to-js";
 import { mqtt } from "./mqtt";
 import { sleep } from "./util";
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 import up from "unixpass";
 import crypto from "crypto";
 
@@ -23,7 +23,7 @@ class GlinetController {
   }
   get state() {
     const { modem, system } = this;
-    if (Object.keys(system.status.result).length)
+    if (Object.keys(system.status.result || {}).length)
       return {
         ...system.status.result,
         system_info: system.info.result,
@@ -46,7 +46,7 @@ class GlinetController {
     call: async (...params: [string, string] | [string, string, string]) => {
       const [err, res] = await this.api.post([this.sid, ...params]);
       if (err) throw err;
-      return res.data;
+      return res?.data;
     },
     post: async (
       params:
@@ -54,12 +54,12 @@ class GlinetController {
         | [string | undefined, string, string, string]
         | { [param: string]: string },
       method = "call"
-    ) => {
+    ): Promise<[Error, undefined] | [null, AxiosResponse]> => {
       if (method === "call" && !this.sid) await this.login();
       // Add latest sid to first array param
       if (Array.isArray(params)) params[0] = this.sid;
 
-      return to(
+      const [err, res] = await to(
         axios.post(this.api_uri, {
           jsonrpc: "2.0",
           method,
@@ -67,6 +67,16 @@ class GlinetController {
           id: 0,
         })
       );
+      if (err) return [err, undefined];
+      if (res?.data?.error?.message === "Access denied") {
+        console.warn(`[glinet:api] Access denied for api call ${params}`);
+        if (this.sid) {
+          this.sid = "";
+          return this.api.post(params);
+        }
+      }
+
+      return [err, res];
     },
   };
   modem = {
@@ -130,7 +140,7 @@ class GlinetController {
       );
       if (challengeErr) throw challengeErr;
 
-      const result = challengeResponse.data.result;
+      const result = challengeResponse.data.result || {};
       const alg = result.alg;
       const salt = result.salt;
       const nonce = result.nonce;
@@ -157,7 +167,7 @@ class GlinetController {
       if (loginErr) throw loginErr;
       this.sid = loginResponse.data.result.sid;
       console.log(
-        `[glinet:login] ${JSON.stringify(loginResponse.data.result)}`
+        `[glinet:login] ${JSON.stringify(loginResponse?.data.result)}`
       );
     } catch (error) {
       console.error(`[glinet:login] ${error}`);

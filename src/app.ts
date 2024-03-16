@@ -25,7 +25,7 @@ server.get("/call", async (request, reply) => {
     console.log(error);
 
     reply.type("application/json").code(500);
-    return { error };
+    return { error: `${error}` };
   }
 });
 
@@ -37,7 +37,7 @@ server.get("/ha-devices", async (request, reply) => {
     console.log(error);
 
     reply.type("application/json").code(500);
-    return { error };
+    return { error: `${error}` };
   }
 });
 
@@ -51,7 +51,7 @@ server.get("/ha-attribute", async (request, reply) => {
     console.log(error);
 
     reply.type("application/json").code(500);
-    return { error };
+    return { error: `${error}` };
   }
 });
 
@@ -65,7 +65,7 @@ server.get("/refresh", async (request, reply) => {
     console.log(error);
 
     reply.type("application/json").code(500);
-    return { error };
+    return { error: `${error}` };
   }
 });
 
@@ -80,7 +80,7 @@ server.get("/status", async (request, reply) => {
     console.log(error);
 
     reply.type("application/json").code(500);
-    return { error };
+    return { error: `${error}` };
   }
 });
 
@@ -94,7 +94,7 @@ server.get("/login", async (request, reply) => {
     console.log(error);
 
     reply.type("application/json").code(500);
-    return { login: "error", error };
+    return { login: "error", error: `${error}` };
   }
 });
 
@@ -108,7 +108,7 @@ server.get("/reboot", async (request, reply) => {
     console.log(error);
 
     reply.type("application/json").code(500);
-    return { reboot: "error", error };
+    return { reboot: "error", error: `${error}` };
   }
 });
 
@@ -140,7 +140,7 @@ server.post<{ Body: { reboot: "ok" } }>(
       console.log(error);
 
       reply.type("application/json").code(500);
-      return { reboot: "error", error };
+      return { reboot: "error", error: `${error}` };
     }
   }
 );

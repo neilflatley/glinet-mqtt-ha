@@ -89,7 +89,7 @@ export const devices = (model: string) => ({
       value_template: `{{ value_json.client[0].wireless_total | int(0) }}`,
       icon: `mdi:wifi-star`,
       json_attributes_topic: `glinet_${model}/attribute`,
-      json_attributes_template: `{{ value_json.client | tojson }}`,
+      json_attributes_template: `{{ value_json.client[0] | tojson }}`,
     },
     {
       name: `Connection text`,
@@ -184,7 +184,7 @@ export const devices = (model: string) => ({
       value_template: `{{ value_json.modem_status.modems[0].simcard.signal.strength }}`,
       icon: `mdi:signal`,
       json_attributes_topic: `glinet_${model}/attribute`,
-      json_attributes_template: `{{ value_json.wwan.signalStrength | tojson }}`,
+      json_attributes_template: `{{ value_json.modem_status.modems[0].simcard | tojson }}`,
     },
     {
       name: `Started`,
@@ -195,14 +195,16 @@ export const devices = (model: string) => ({
       icon: `mdi:clock`,
       entity_category: `diagnostic`,
     },
-    // {
-    //   name: `WAN IP`,
-    //   unique_id: `glinet_${model}_wan_ip`,
-    //   object_id: `glinet_${model}_wan_ip`,
-    //   value_template: `{{ value_json.wwan.IP }}`,
-    //   icon: `mdi:ip`,
-    //   entity_category: `diagnostic`,
-    // },
+    {
+      name: `WAN interface`,
+      unique_id: `glinet_${model}_wan_interface`,
+      object_id: `glinet_${model}_wan_interface`,
+      value_template: `{{ value_json.network | selectattr('online', 'true') | map(attribute='interface') | list | first }}`,
+      icon: `mdi:help-network-outline`,
+      json_attributes_topic: `glinet_${model}/attribute`,
+      json_attributes_template: `{%- set a = namespace(value={}) -%}{%- for n in value_json.network|list -%}{%- set a.value = dict(a.value, **{n.interface: { "online": n.online, "up": n.up }}) -%}{%- endfor %}{{ a.value | tojson }}`,
+      entity_category: `diagnostic`,
+    },
     // {
     //   name: `WWAN band`,
     //   unique_id: `glinet_${model}_wwan_band`,
