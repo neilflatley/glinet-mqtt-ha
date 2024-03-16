@@ -95,7 +95,7 @@ export const devices = (model: string) => ({
       name: `Connection text`,
       unique_id: `glinet_${model}_connection_text`,
       object_id: `glinet_${model}_connection_text`,
-      value_template: `{{ {"2":"2G","3":"3G","4":"4G","41":"4G+","5":"5G"}[value_json.modem_status.modems[0].simcard.signal.mode] }}`,
+      value_template: `{{ {2:"2G",3:"3G",4:"4G",41:"4G+",5:"5G"}[value_json.modem_status.modems[0].simcard.signal.mode] }}`,
       icon: `mdi:signal-4g`,
     },
     {
