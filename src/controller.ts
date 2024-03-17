@@ -18,14 +18,17 @@ class GlinetController {
 
   sid?: string; // Token to connect to router
 
-  get bus() {
+  get model() {
+    return this.system.info?.result?.model;
+  }
+  get modem_bus() {
     return (
       this.system.info?.result?.hardware_feature.build_in_modem.split(",")[0] ||
       "0001:01:00.0"
     );
   }
-  get model() {
-    return this.system.info?.result?.model;
+  get modem_port() {
+    return this.modem.info?.result?.modems[0].at_port || "/dev/mhi_DUN";
   }
   get state() {
     const { modem, system } = this;
@@ -36,6 +39,7 @@ class GlinetController {
         modem_status: modem.status.result,
         modem_info: modem.info.result,
         modem_cells_info: modem.cells_info.result,
+        modem_tower_info: modem.tower_info,
       };
     return null;
   }
@@ -87,13 +91,14 @@ class GlinetController {
     },
   };
   modem = {
+    tower_info: {} as any,
     cells_info: {} as any,
     info: {} as any,
     status: {} as any,
     get_cells_info: async () => {
       // if (!Object.keys(this.modem.info).length) await this.modem.get_info();
       this.modem.cells_info = await this.api.call("modem", "get_cells_info", {
-        bus: this.bus,
+        bus: this.modem_bus,
       });
       return this.modem.info;
     },
@@ -105,6 +110,58 @@ class GlinetController {
       if (!Object.keys(this.modem.info).length) await this.modem.get_info();
       this.modem.status = await this.api.call("modem", "get_status");
       return this.modem.status;
+    },
+    get_tower_info: async () => {
+      const resp = await Promise.all([
+        this.modem.send_at_command("AT+QNWINFO"),
+        this.modem.send_at_command("AT+CEREG?"),
+      ]);
+
+      let info: any = { cmd: {} };
+
+      if (typeof resp[0] === "string" && resp[0].includes("OK")) {
+        const result = resp[0].split("\r\n")[1].split(": ");
+        const cmd = result[0];
+        const raw = result[1].replaceAll('"', "").split(",");
+
+        const cell = {
+          type: raw[0],
+          band: raw[2],
+          mcc: Number(raw[1].slice(0, 3)),
+          mnc: Number(raw[1].slice(3)),
+          freq: Number(raw[3]),
+        };
+
+        info.cmd[`AT${cmd}`] = result[1];
+        info = Object.assign(info, cell);
+      }
+      if (typeof resp[1] === "string" && resp[1].includes("OK")) {
+        const result = resp[1].split("\r\n")[1].split(": ");
+        const cmd = result[0];
+        const raw = result[1].replaceAll('"', "").split(",");
+
+        const cell = {
+          lac: parseInt(raw[2], 16),
+          cellId: raw[3],
+          enbId: parseInt(raw[3].slice(0, -2), 16),
+          sector: parseInt(raw[3].slice(-2), 16),
+        };
+        info.cmd[`AT${cmd}`] = result[1];
+        info = Object.assign(info, cell);
+      }
+
+      const url = `https://api.cellmapper.net/v6/getTowerInformation?MCC=${info.mcc}&MNC=${info.mnc}&Region=${info.lac}&Site=${info.enbId}&RAT=${info.band.split(' ')[0]}`
+      info.url = url;
+      this.modem.tower_info = info;
+      return this.modem.tower_info;
+    },
+    send_at_command: async (command: string) => {
+      const at = await this.api.call("modem", "send_at_command", {
+        bus: this.modem_bus,
+        command,
+        port: this.modem_port,
+      });
+      return at.result.response;
     },
   };
   system = {
@@ -133,6 +190,7 @@ class GlinetController {
     const promises = [
       modem.get_status(),
       modem.get_cells_info(),
+      modem.get_tower_info(),
     ];
 
     await Promise.all(promises);

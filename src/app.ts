@@ -84,6 +84,20 @@ server.get("/status", async (request, reply) => {
   }
 });
 
+server.get("/cell_info", async (request, reply) => {
+  try {
+    const info = await router.modem.get_tower_info();
+
+    reply.type("application/json").code(200);
+    return info;
+  } catch (error) {
+    console.log(error);
+
+    reply.type("application/json").code(500);
+    return { error: `${error}` };
+  }
+});
+
 server.get("/login", async (request, reply) => {
   try {
     await router.login();
