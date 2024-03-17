@@ -142,6 +142,20 @@ export const devices = (model: string) => ({
       icon: `mdi:counter`,
     },
     {
+      name: `IP location`,
+      unique_id: `glinet_${model}_ip_location`,
+      object_id: `glinet_${model}_ip_location`,
+      value_template: `{{ value_json.ip_location.query }}`,
+      availability: {
+        topic: `glinet-${model}/attribute`,
+        value_template: `{{ value_json.ip_location.status }}`,
+        payload_available: `success`,
+      },
+      icon: `mdi:ip`,
+      json_attributes_topic: `glinet-${model}/attribute`,
+      json_attributes_template: `{{ value_json.ip_location | tojson }}`,
+    },
+    {
       name: `Network`,
       unique_id: `glinet_${model}_connected_network`,
       object_id: `glinet_${model}_connected_network`,

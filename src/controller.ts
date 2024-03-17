@@ -31,7 +31,7 @@ class GlinetController {
     return this.modem.info?.result?.modems[0].at_port || "/dev/mhi_DUN";
   }
   get state() {
-    const { modem, system } = this;
+    const { location, modem, system } = this;
     if (Object.keys(system.status.result || {}).length)
       return {
         ...system.status.result,
@@ -40,6 +40,7 @@ class GlinetController {
         modem_info: modem.info.result,
         modem_cells_info: modem.cells_info.result,
         modem_tower_info: modem.tower_info,
+        ip_location: location.current,
       };
     return null;
   }
@@ -88,6 +89,16 @@ class GlinetController {
       }
 
       return [err, res];
+    },
+  };
+  location = {
+    current: {} as any,
+    get_location: async () => {
+      const [err, response] = await to(axios.get("http://ip-api.com/json"));
+      if (err) {
+        console.error(`[glinet:get_location] ${err}`);
+      }
+      if (response?.data) this.location.current = response.data;
     },
   };
   modem = {
@@ -143,14 +154,18 @@ class GlinetController {
         const cell = {
           lac: parseInt(raw[2], 16),
           cellId: raw[3],
-          enbId: parseInt(raw[3].slice(0, -2), 16),
+          eNBId: parseInt(raw[3].slice(0, -2), 16),
           sector: parseInt(raw[3].slice(-2), 16),
         };
         info.cmd[`AT${cmd}`] = result[1];
         info = Object.assign(info, cell);
       }
 
-      const url = `https://api.cellmapper.net/v6/getTowerInformation?MCC=${info.mcc}&MNC=${info.mnc}&Region=${info.lac}&Site=${info.enbId}&RAT=${info.band.split(' ')[0]}`
+      const url = `https://api.cellmapper.net/v6/getTowerInformation?MCC=${
+        info.mcc
+      }&MNC=${info.mnc}&Region=${info.lac}&Site=${info.enbId}&RAT=${
+        info.band.split(" ")[0]
+      }`;
       info.url = url;
       this.modem.tower_info = info;
       return this.modem.tower_info;
@@ -185,9 +200,10 @@ class GlinetController {
   };
 
   refresh = async () => {
-    const { modem, system } = this;
+    const { location, modem, system } = this;
     await system.get_status();
     const promises = [
+      location.get_location(),
       modem.get_status(),
       modem.get_cells_info(),
       modem.get_tower_info(),
