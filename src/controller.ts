@@ -98,7 +98,10 @@ class GlinetController {
       if (err) {
         console.error(`[glinet:get_location] ${err}`);
       }
-      if (response?.data) this.location.current = response.data;
+      if (response?.data) {
+        const { lat, lon, ...rest } = response.data;
+        this.location.current = { latitude: lat, longitude: lon, ...rest };
+      }
     },
   };
   modem = {
