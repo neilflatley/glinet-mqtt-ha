@@ -163,7 +163,7 @@ class GlinetController {
 
       const url = `https://api.cellmapper.net/v6/getTowerInformation?MCC=${
         info.mcc
-      }&MNC=${info.mnc}&Region=${info.lac}&Site=${info.enbId}&RAT=${
+      }&MNC=${info.mnc}&Region=${info.lac}&Site=${info.eNBId}&RAT=${
         info.band.split(" ")[0]
       }`;
       info.url = url;
