@@ -82,6 +82,16 @@ export const devices = (model: string) => ({
       entity_category: `diagnostic`,
     },
     {
+      name: `Cell tower`,
+      unique_id: `glinet_${model}_cell_tower`,
+      object_id: `glinet_${model}_cell_tower`,
+      value_template: `{{ value_json.modem_tower_info.lac }}`,
+      icon: `mdi:radio-tower`,
+      json_attributes_topic: `glinet-${model}/attribute`,
+      json_attributes_template: `{{ value_json.modem_tower_info | tojson }}`,
+      entity_category: `diagnostic`,
+    },
+    {
       name: `Connected clients`,
       unique_id: `glinet_${model}_connected_clients`,
       object_id: `glinet_${model}_connected_clients`,
