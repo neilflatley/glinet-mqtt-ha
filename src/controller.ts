@@ -1,6 +1,5 @@
 import { to } from "await-to-js";
-import { mqtt } from "./mqtt";
-import { sleep } from "./util";
+import { mqtt } from "./mqtt.ts";
 import axios, { AxiosResponse } from "axios";
 import up from "unixpass";
 import crypto from "crypto";
@@ -141,8 +140,8 @@ class GlinetController {
         const cell = {
           type: raw[0],
           band: raw[2],
-          mcc: Number(raw[1].slice(0, 3)),
-          mnc: Number(raw[1].slice(3)),
+          mcc: Number(raw[1]?.slice(0, 3)),
+          mnc: Number(raw[1]?.slice(3)),
           freq: Number(raw[3]),
         };
 
@@ -157,8 +156,8 @@ class GlinetController {
         const cell = {
           lac: parseInt(raw[2], 16),
           cellId: raw[3],
-          eNBId: parseInt(raw[3].slice(0, -2), 16),
-          sector: parseInt(raw[3].slice(-2), 16),
+          eNBId: parseInt(raw[3]?.slice(0, -2), 16),
+          sector: parseInt(raw[3]?.slice(-2), 16),
         };
         info.cmd[`AT${cmd}`] = result[1];
         info = Object.assign(info, cell);

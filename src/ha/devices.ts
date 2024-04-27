@@ -1,5 +1,5 @@
-import GlinetController from "src/controller";
-import { devices } from "./devices-template";
+import GlinetController from "src/controller.ts";
+import { devices } from "./devices-template.ts";
 
 const mapDeviceAttribute = (json: any) => ({
   identifiers: [json.sn],
@@ -11,7 +11,7 @@ const mapDeviceAttribute = (json: any) => ({
   sw_version: `${json.firmware_version}`,
 });
 
-export const mapDevices = (state: GlinetController['state'], model: string) => {
+export const mapDevices = (state: GlinetController["state"], model: string) => {
   if (!state) return [];
   const deviceAttribute = mapDeviceAttribute(state.system_info);
 
