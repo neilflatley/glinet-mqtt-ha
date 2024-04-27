@@ -1,11 +1,14 @@
 import { MqttClient, connectAsync } from "mqtt";
+import { isNumber } from "util";
 import { mapDevices } from "./ha/devices.js";
 import GlinetController from "./controller.js";
+import { sleep } from "./util.js";
 
 export class Mqtt {
   client?: MqttClient;
   count = 0;
   host = process.env.MQTT_HOST;
+  refresh = Number(process.env.MQTT_REFRESH);
   info: any;
   status: any;
   router!: GlinetController;
@@ -26,13 +29,13 @@ export class Mqtt {
         this.client = client;
         console.log(`[mqtt] connected client ${this.host}`);
         await this.discovery();
-        this.birth();
+        await this.birth();
       }
     }
     return this;
   };
 
-  birth = () => {
+  birth = async () => {
     if (!this.client || !this.router) return;
     this.client.on("end", () => {
       this.client = undefined;
@@ -71,6 +74,26 @@ export class Mqtt {
         if (cmd === "restart") this.router.system.reboot();
       }
     });
+
+    if (isNumber(this.refresh)) {
+      // start an infinite loop
+      console.log(`[mqtt] starting background loop refreshing at intervals of MQTT_REFRESH=${this.refresh} seconds`);
+      let quit = false;
+      process.on("exit", (code) => {
+        quit = true;
+      });
+
+      // this is the signal that nodemon uses
+      process.once("SIGUSR2", () => {
+        quit = true;
+        process.kill(process.pid, "SIGUSR2");
+      });
+
+      while (quit === false)  {
+        await sleep(this.refresh * 1000);
+        await this.router.refresh();
+      }
+    }
   };
 
   discovery = async () => {

@@ -320,71 +320,71 @@ class GlinetController {
   //   }
   // };
 
-  script = async () => {
-    // Step1: Get encryption parameters by challenge method
-    axios
-      .post(this.api_uri, {
-        jsonrpc: "2.0",
-        method: "challenge",
-        params: {
-          username: this.username,
-        },
-        id: 0,
-      })
-      .then((response) => {
-        const result = response.data.result;
-        const alg = result.alg;
-        const salt = result.salt;
-        const nonce = result.nonce;
+  // script = async () => {
+  //   // Step1: Get encryption parameters by challenge method
+  //   axios
+  //     .post(this.api_uri, {
+  //       jsonrpc: "2.0",
+  //       method: "challenge",
+  //       params: {
+  //         username: this.username,
+  //       },
+  //       id: 0,
+  //     })
+  //     .then((response) => {
+  //       const result = response.data.result;
+  //       const alg = result.alg;
+  //       const salt = result.salt;
+  //       const nonce = result.nonce;
 
-        // Step2: Generate cipher text using openssl algorithm
-        const cipherPassword = up.crypt(
-          this.password,
-          "$" + alg + "$" + salt + "$"
-        );
+  //       // Step2: Generate cipher text using openssl algorithm
+  //       const cipherPassword = up.crypt(
+  //         this.password,
+  //         "$" + alg + "$" + salt + "$"
+  //       );
 
-        // Step3: Generate hash values for login
-        const data = `${this.username}:${cipherPassword}:${nonce}`;
-        const hash_value = crypto.createHash("md5").update(data).digest("hex");
+  //       // Step3: Generate hash values for login
+  //       const data = `${this.username}:${cipherPassword}:${nonce}`;
+  //       const hash_value = crypto.createHash("md5").update(data).digest("hex");
 
-        // Step4: Get sid by login
-        axios
-          .post(this.api_uri, {
-            jsonrpc: "2.0",
-            method: "login",
-            params: {
-              username: "root",
-              hash: hash_value,
-            },
-            id: 0,
-          })
-          .then((response) => {
-            const sid = response.data.result.sid;
+  //       // Step4: Get sid by login
+  //       axios
+  //         .post(this.api_uri, {
+  //           jsonrpc: "2.0",
+  //           method: "login",
+  //           params: {
+  //             username: "root",
+  //             hash: hash_value,
+  //           },
+  //           id: 0,
+  //         })
+  //         .then((response) => {
+  //           const sid = response.data.result.sid;
 
-            // Step5: Calling other APIs with sid
-            axios
-              .post(this.api_uri, {
-                jsonrpc: "2.0",
-                method: "call",
-                params: [sid, "system", "get_status"],
-                id: 0,
-              })
-              .then((response) => {
-                console.log(JSON.stringify(response.data));
-                this.system.status = response.data;
-              })
-              .catch((error) => {
-                console.error("Request Exception:", error);
-              });
-          })
-          .catch((error) => {
-            console.error("Request Exception:", error);
-          });
-      })
-      .catch((error) => {
-        console.error("Request Exception:", error);
-      });
-  };
+  //           // Step5: Calling other APIs with sid
+  //           axios
+  //             .post(this.api_uri, {
+  //               jsonrpc: "2.0",
+  //               method: "call",
+  //               params: [sid, "system", "get_status"],
+  //               id: 0,
+  //             })
+  //             .then((response) => {
+  //               console.log(JSON.stringify(response.data));
+  //               this.system.status = response.data;
+  //             })
+  //             .catch((error) => {
+  //               console.error("Request Exception:", error);
+  //             });
+  //         })
+  //         .catch((error) => {
+  //           console.error("Request Exception:", error);
+  //         });
+  //     })
+  //     .catch((error) => {
+  //       console.error("Request Exception:", error);
+  //     });
+  // };
 }
 
 export default GlinetController;
