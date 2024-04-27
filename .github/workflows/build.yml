@@ -7,12 +7,21 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  APP_IMAGE: ghcr.io/${{ github.repository }}/${{ github.ref_name }}/app
+  APP_IMAGE: ghcr.io/${{ github.repository }}/${{ github.ref_name }}
 
 jobs:
   build:
-    name: Build image and push
-    runs-on: ubuntu-latest
+    name: Build image and push ${{ matrix.friendlyName }}
+
+    strategy:
+      matrix:
+        node-version: [20.x]
+        os: [ubuntu-latest, arm64]
+    runs-on: ${{ matrix.os }}
+
+    env:
+      ARCH: ${{ matrix.os == 'arm64' && 'arm64' || 'amd64' }}
+    
     permissions:
       contents: read
       packages: write
@@ -33,8 +42,8 @@ jobs:
       - name: Build Docker image and push to ${{ env.APP_IMAGE }}:latest
         id: build
         env:
-          BUILD_IMAGE: ${{ env.APP_IMAGE }}:build-${{ github.run_number }}
-          LATEST_IMAGE: ${{ env.APP_IMAGE }}:latest
+          BUILD_IMAGE: ${{ env.APP_IMAGE }}/${{ env.ARCH }}:build-${{ github.run_number }}
+          LATEST_IMAGE: ${{ env.APP_IMAGE }}/${{ env.ARCH }}:latest
         run: |
           docker build -t $LATEST_IMAGE -t $BUILD_IMAGE .
-          docker push --all-tags ${{ env.APP_IMAGE }}
+          docker push --all-tags ${{ env.APP_IMAGE }}/${{ env.ARCH }}
