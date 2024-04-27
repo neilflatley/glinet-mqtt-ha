@@ -11,7 +11,7 @@ env:
 
 jobs:
   build:
-    name: Build image and push ${{ matrix.friendlyName }}
+    name: Build image and push ${{ matrix.os }}
 
     strategy:
       matrix:
@@ -39,7 +39,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build Docker image and push to ${{ env.APP_IMAGE }}:latest
+      - name: Build Docker image and push to ${{ env.APP_IMAGE }}/${{ env.ARCH }}:latest
         id: build
         env:
           BUILD_IMAGE: ${{ env.APP_IMAGE }}/${{ env.ARCH }}:build-${{ github.run_number }}
