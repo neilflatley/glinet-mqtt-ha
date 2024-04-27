@@ -75,7 +75,7 @@ export class Mqtt {
       }
     });
 
-    if (isNumber(this.refresh)) {
+    if (!Number.isNaN(this.refresh) && this.refresh > 0) {
       // start an infinite loop
       console.log(`[mqtt] starting background loop refreshing at intervals of MQTT_REFRESH=${this.refresh} seconds`);
       let quit = false;
