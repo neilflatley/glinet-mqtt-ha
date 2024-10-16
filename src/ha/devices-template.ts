@@ -178,9 +178,9 @@ export const devices = (model: string) => ({
       value_template: `{{ value_json.system.flash_free }}`,
       device_class: `data_size`,
       unit_of_measurement: `B`,
-      icon: `mdi:memory`,
+      icon: `mdi:harddisk`,
       json_attributes_topic: `glinet-${model}/attribute`,
-      json_attributes_template: `{{ ('{ "flash_total": ' + value_json.system.flash_total|string + ', "flash_app": ' + value_json.system.flash_app|string + ' }') | tojson }}`,
+      json_attributes_template: `{{ { "flash_total": value_json.system.flash_total, "flash_app": value_json.system.flash_app } | tojson }}`,
       entity_category: `diagnostic`,
     },
     {
@@ -208,7 +208,7 @@ export const devices = (model: string) => ({
       unit_of_measurement: `B`,
       icon: `mdi:memory`,
       json_attributes_topic: `glinet-${model}/attribute`,
-      json_attributes_template: `{{ ('{ "memory_total": ' + value_json.system.memory_total|string + ', "memory_buff_cache": ' + value_json.system.memory_buff_cache|string + ' }') | tojson }}`,
+      json_attributes_template: `{{ { "memory_total": value_json.system.memory_total, "memory_buff_cache": value_json.system.memory_buff_cache } | tojson }}`,
       entity_category: `diagnostic`,
     },
     {
