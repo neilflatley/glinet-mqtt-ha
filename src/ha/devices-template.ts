@@ -120,7 +120,7 @@ export const devices = (model: string) => ({
       unit_of_measurement: `°C`,
       icon: `mdi:thermometer`,
       json_attributes_topic: `glinet-${model}/attribute`,
-      json_attributes_template: `{{ value_json.system.load_average | tojson }}`,
+      json_attributes_template: `{{ { "load_average": value_json.system.load_average } | tojson }}`,
       entity_category: `diagnostic`,
     },
     {
