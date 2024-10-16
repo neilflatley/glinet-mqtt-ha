@@ -113,7 +113,7 @@ class GlinetController {
       this.modem.cells_info = await this.api.call("modem", "get_cells_info", {
         bus: this.modem_bus,
       });
-      return this.modem.info;
+      return this.modem.cells_info;
     },
     get_info: async () => {
       this.modem.info = await this.api.call("modem", "get_info");
@@ -204,14 +204,19 @@ class GlinetController {
   refresh = async () => {
     const { location, modem, system } = this;
     await system.get_status();
-    const promises = [
-      location.get_location(),
-      modem.get_status(),
-      modem.get_cells_info(),
-      modem.get_tower_info(),
+    const apiCalls = [
+      location.get_location,
+      modem.get_status,
+      modem.get_cells_info,
+      modem.get_tower_info,
     ];
 
-    await Promise.all(promises);
+    // Make the API calls sequentially (takes longer)
+    if (process.env.GLINET_SEQUENTIAL_API)
+      for (const apiCall of apiCalls) await apiCall();
+    // Make all API calls in parallel (default)
+    else await Promise.all(apiCalls.map((op) => op()));
+
     this.publish();
 
     return this.state;
