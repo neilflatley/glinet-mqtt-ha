@@ -3,6 +3,7 @@ import axios, { AxiosResponse } from "axios";
 import crypto from "crypto";
 import up from "unixpass";
 import { mqtt } from "./mqtt.ts";
+import { sleep } from "./util.ts";
 
 class GlinetController {
   private host = "192.168.8.1";
@@ -46,7 +47,7 @@ class GlinetController {
 
   constructor(
     host = process.env.GLINET_HOST,
-    password = process.env.GLINET_PASSWORD
+    password = process.env.GLINET_PASSWORD,
   ) {
     if (password) this.password = password;
     this.host = host || this.host;
@@ -80,7 +81,9 @@ class GlinetController {
       );
       if (err) return [err, undefined];
       if (res?.data?.error?.message === "Access denied") {
-        console.warn(`[glinet:api] Access denied for api call ${params}`);
+        console.warn(
+          `[glinet:api] Access denied for api call ${JSON.stringify(params)}`,
+        );
         if (this.sid) {
           this.sid = "";
           return this.api.post(params);
@@ -236,7 +239,7 @@ class GlinetController {
         {
           username: this.username,
         },
-        "challenge"
+        "challenge",
       );
       if (challengeErr) throw challengeErr;
 
@@ -248,12 +251,15 @@ class GlinetController {
       // Step2: Generate cipher text using openssl algorithm
       const cipherPassword = up.crypt(
         this.password,
-        "$" + alg + "$" + salt + "$"
+        "$" + alg + "$" + salt + "$",
       );
 
       // Step3: Generate hash values for login
       const data = `${this.username}:${cipherPassword}:${nonce}`;
-      const hash_value = crypto.createHash("md5").update(data).digest("hex");
+      const hash_value = crypto
+        .createHash("sha256")
+        .update(data, "utf-8")
+        .digest("hex");
 
       // Step4: Get sid by login
       const [loginErr, loginResponse] = await this.api.post(
@@ -261,14 +267,31 @@ class GlinetController {
           username: "root",
           hash: hash_value,
         },
-        "login"
+        "login",
       );
 
       if (loginErr) throw loginErr;
-      this.sid = loginResponse.data.result.sid;
-      console.log(
-        `[glinet:login] ${JSON.stringify(loginResponse?.data.result)}`
-      );
+      if (loginResponse.data.error) {
+        console.log(
+          `[glinet:login] ${JSON.stringify(loginResponse.data.error)}`,
+        );
+        if (
+          "Login fail number over limit" === loginResponse.data.error.message
+        ) {
+          const { wait } = loginResponse.data.error.data;
+          console.log(
+            `[glinet:login] "Login fail number over limit - wait ${wait}"`,
+          );
+          await sleep((wait + 5) * 1000);
+          console.log(`[glinet:login] Retry login after waiting for ${wait}s`);
+          await this.login();
+        }
+      } else if (loginResponse.data.result) {
+        this.sid = loginResponse.data.result.sid;
+        console.log(
+          `[glinet:login] ${JSON.stringify(loginResponse?.data.result)}`,
+        );
+      }
     } catch (error) {
       console.error(`[glinet:login] ${error}`);
       throw error;
