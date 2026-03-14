@@ -69,22 +69,24 @@ Disable the REST API by setting `GLINET_API=false`
 
 ### Diagnostic
 
-| Entity                | Type   | Description                                           |
-| --------------------- | ------ | ----------------------------------------------------- |
-| **Started**           | sensor | How long the device has been running (e.g. “5 days”). |
-| **Restart**           | button | Reboot the device from Home Assistant.                |
-| **CPU temperature**   | sensor | Current CPU temperature in °C.                        |
-| **Data use**          | sensor | Total data used (RX + TX) in bytes.                   |
-| **Data use (RX)**     | sensor | Amount of data received (bytes).                      |
-| **Data use (TX)**     | sensor | Amount of data transmitted (bytes).                   |
-| **Flash free**        | sensor | Amount of free flash memory in MiB.                   |
-| **Memory available**  | sensor | Amount of free RAM available for applications in MiB. |
-| **Memory buff/cache** | sensor | RAM used for buffers and cache in MiB.                |
-| **Memory free**       | sensor | Unused RAM in MiB.                                    |
-| **Memory total**      | sensor | Total installed RAM in MiB.                           |
-| **Memory total used** | sensor | RAM used by the system in MiB.                        |
-| **Memory used**       | sensor | RAM used by applications in MiB.                      |
-| **WAN interface**     | sensor | Name of the active WAN interface (e.g. “modem_0001”). |
+| Entity                | Type          | Description                                           |
+| --------------------- | ------------- | ----------------------------------------------------- |
+| **Started**           | sensor        | How long the device has been running (e.g. “5 days”). |
+| **Restart**           | button        | Reboot the device from Home Assistant.                |
+| **Battery**           | sensor        | Battery charge level in % (enable if supported)       |
+| **Charging**          | binary_sensor | Whether the battery is charging (enable if supported) |
+| **CPU temperature**   | sensor        | Current CPU temperature in °C.                        |
+| **Data use**          | sensor        | Total data used (RX + TX) in bytes.                   |
+| **Data use (RX)**     | sensor        | Amount of data received (bytes).                      |
+| **Data use (TX)**     | sensor        | Amount of data transmitted (bytes).                   |
+| **Flash free**        | sensor        | Amount of free flash memory in MiB.                   |
+| **Memory available**  | sensor        | Amount of free RAM available for applications in MiB. |
+| **Memory buff/cache** | sensor        | RAM used for buffers and cache in MiB.                |
+| **Memory free**       | sensor        | Unused RAM in MiB.                                    |
+| **Memory total**      | sensor        | Total installed RAM in MiB.                           |
+| **Memory total used** | sensor        | RAM used by the system in MiB.                        |
+| **Memory used**       | sensor        | RAM used by applications in MiB.                      |
+| **WAN interface**     | sensor        | Name of the active WAN interface (e.g. “modem_0001”). |
 
 ### Track Data Usage
 

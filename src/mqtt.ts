@@ -1,7 +1,7 @@
 import { MqttClient, connectAsync } from "mqtt";
+import { setTimeout as sleep } from "timers/promises";
 import { mapDevices } from "./ha/devices.js";
 import GlinetController from "./controller.js";
-import { sleep } from "./util.js";
 
 export class Mqtt {
   client?: MqttClient;
@@ -76,7 +76,9 @@ export class Mqtt {
 
     if (!Number.isNaN(this.refresh) && this.refresh > 0) {
       // start an infinite loop
-      console.log(`[mqtt] starting background loop refreshing at intervals of MQTT_REFRESH=${this.refresh} seconds`);
+      console.log(
+        `[mqtt] starting background loop refreshing at intervals of MQTT_REFRESH=${this.refresh} seconds`,
+      );
       let quit = false;
       process.on("exit", (code) => {
         quit = true;
@@ -88,7 +90,7 @@ export class Mqtt {
         process.kill(process.pid, "SIGUSR2");
       });
 
-      while (quit === false)  {
+      while (quit === false) {
         await sleep(this.refresh * 1000);
         await this.router.refresh();
       }
@@ -110,27 +112,27 @@ export class Mqtt {
           JSON.stringify(device),
           `homeassistant/${component}/${device.unique_id.replace(
             `glinet-${this.router.model}_`,
-            `glinet-${this.router.model}/`
-          )}/config`
+            `glinet-${this.router.model}/`,
+          )}/config`,
         );
         count++;
       }
     }
     if (count) console.log(`[mqtt] published ${count} discovery messages`);
-    setTimeout(() => {
-      this.publish();
-    }, 5000);
+    
+    await sleep(5000);
+    this.publish();
   };
 
   publish = async (
     message = this.message,
-    topic = `glinet-${this.router.model}/attribute`
+    topic = `glinet-${this.router.model}/attribute`,
   ) => {
     if (this.client) {
       await this.client.publishAsync(topic, message);
       if (topic === `glinet-${this.router.model}/attribute`)
         console.log(
-          `[mqtt] published ${++this.count} status messages since startup`
+          `[mqtt] published ${++this.count} status messages since startup`,
         );
     }
   };

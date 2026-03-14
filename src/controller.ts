@@ -1,9 +1,9 @@
 import { to } from "await-to-js";
 import axios, { AxiosResponse } from "axios";
 import crypto from "crypto";
+import { setTimeout as sleep } from "timers/promises";
 import up from "unixpass";
 import { mqtt } from "./mqtt.ts";
-import { sleep } from "./util.ts";
 
 class GlinetController {
   private host = "192.168.8.1";
