@@ -1,5 +1,4 @@
 import { MqttClient, connectAsync } from "mqtt";
-import { isNumber } from "util";
 import { mapDevices } from "./ha/devices.js";
 import GlinetController from "./controller.js";
 import { sleep } from "./util.js";
