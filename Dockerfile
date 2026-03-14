@@ -14,6 +14,6 @@ COPY --from=builder /usr/src/app/dist ./dist
 FROM gcr.io/distroless/nodejs20-debian12
 COPY --from=base /usr/src/app /app
 WORKDIR /app
-ENV NODE_OPTIONS="--max-old-space-size=96"
+ENV MALLOC_ARENA_MAX=1
 EXPOSE 3000
 CMD [ "dist/app.js"]
