@@ -59,6 +59,7 @@ Disable the REST API by setting `GLINET_API=false`
 | **Signal strength (RSSI)** | sensor        | Received signal strength in dBm.                                           |
 | **WWAN band**              | sensor        | Current LTE band (e.g. “LTE FDD”).                                         |
 | **IP location**            | sensor        | Public IP address of the device.                                           |
+| **Unread SMS**             | sensor        | Number of unread SMS messages.                                             |
 
 ### Wi‑Fi
 
@@ -69,24 +70,27 @@ Disable the REST API by setting `GLINET_API=false`
 
 ### Diagnostic
 
-| Entity                | Type          | Description                                           |
-| --------------------- | ------------- | ----------------------------------------------------- |
-| **Started**           | sensor        | How long the device has been running (e.g. “5 days”). |
-| **Restart**           | button        | Reboot the device from Home Assistant.                |
-| **Battery**           | sensor        | Battery charge level in % (enable if supported)       |
-| **Charging**          | binary_sensor | Whether the battery is charging (enable if supported) |
-| **CPU temperature**   | sensor        | Current CPU temperature in °C.                        |
-| **Data use**          | sensor        | Total data used (RX + TX) in bytes.                   |
-| **Data use (RX)**     | sensor        | Amount of data received (bytes).                      |
-| **Data use (TX)**     | sensor        | Amount of data transmitted (bytes).                   |
-| **Flash free**        | sensor        | Amount of free flash memory in MiB.                   |
-| **Memory available**  | sensor        | Amount of free RAM available for applications in MiB. |
-| **Memory buff/cache** | sensor        | RAM used for buffers and cache in MiB.                |
-| **Memory free**       | sensor        | Unused RAM in MiB.                                    |
-| **Memory total**      | sensor        | Total installed RAM in MiB.                           |
-| **Memory total used** | sensor        | RAM used by the system in MiB.                        |
-| **Memory used**       | sensor        | RAM used by applications in MiB.                      |
-| **WAN interface**     | sensor        | Name of the active WAN interface (e.g. “modem_0001”). |
+| Entity                | Type          | Description                                               |
+| --------------------- | ------------- | --------------------------------------------------------- |
+| **Started**           | sensor        | How long the device has been running (e.g. “5 days”).     |
+| **Restart**           | button        | Reboot the device from Home Assistant.                    |
+| **Battery**           | sensor        | Battery charge level in % (enable if supported)           |
+| **Charging**          | binary_sensor | Whether the battery is charging (enable if supported)     |
+| **CPU temperature**   | sensor        | Current CPU temperature in °C.                            |
+| **Data use**          | sensor        | Total data used (RX + TX) in bytes.                       |
+| **Data use (RX)**     | sensor        | Amount of data received (bytes).                          |
+| **Data use (TX)**     | sensor        | Amount of data transmitted (bytes).                       |
+| **Flash free**        | sensor        | Amount of free flash memory in MiB.                       |
+| **Memory available**  | sensor        | Amount of free RAM available for applications in MiB.     |
+| **Memory buff/cache** | sensor        | RAM used for buffers and cache in MiB.                    |
+| **Memory free**       | sensor        | Unused RAM in MiB.                                        |
+| **Memory total**      | sensor        | Total installed RAM in MiB.                               |
+| **Memory total used** | sensor        | RAM used by the system in MiB.                            |
+| **Memory used**       | sensor        | RAM used by applications in MiB.                          |
+| **Send SMS**          | button        | Send an SMS message via the device from Home Assistant.   |
+| **SMS recipient**     | text          | Set the recipient phone number to send an SMS message to. |
+| **SMS message**       | text          | Set the body of the SMS message.                          |
+| **WAN interface**     | sensor        | Name of the active WAN interface (e.g. “modem_0001”).     |
 
 ### Track Data Usage
 
@@ -122,6 +126,21 @@ Check the console logs for failure details
 ### GET http://{host}:3000/reboot
 
 The admin password is required (as above) to reboot the router. You do not need to call the /login endpoint first.
+
+### GET http://{host}:3000/sms
+
+Get the SMS list from the router
+
+### POST http://{host}:3000/sms
+Send an SMS via the router:
+
+`Content-Type: application/json`
+```json
+{
+  "body": "Message from the API!",
+  "phone_number": "07000000000"
+}
+```
 
 ## Development
 

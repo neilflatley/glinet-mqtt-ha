@@ -58,18 +58,18 @@ export class Mqtt {
         const cmd = payload.split("=")[0];
         const value = payload.split("=")?.[1];
 
-        // if (cmd === "set_msg") {
-        //   this.router.msg = value;
-        //   await this.publish(this.router.msg, `glinet-${this.model}/sms/message`);
-        // }
-        // if (cmd === "set_to") {
-        //   this.router.to = value;
-        //   await this.publish(this.router.to, `glinet-${this.model}/sms/recipient`);
-        // }
-        // if (cmd === "send_sms") {
-        //   const json = JSON.parse(value);
-        //   this.router.sendSms({ message: json.msg, recipient: json.to });
-        // }
+        if (cmd === "set_sms_msg") {
+          this.router.smsBody = value;
+          await this.publish(this.router.smsBody, `glinet-${this.router.model}/sms/message`);
+        }
+        if (cmd === "set_sms_to") {
+          this.router.smsPhoneNumber = value;
+          await this.publish(this.router.smsPhoneNumber, `glinet-${this.router.model}/sms/recipient`);
+        }
+        if (cmd === "send_sms") {
+          const json = JSON.parse(value);
+          this.router.modem.send_sms({ body: json.msg, phone_number: json.to });
+        }
         if (cmd === "restart") this.router.system.reboot();
       }
     });

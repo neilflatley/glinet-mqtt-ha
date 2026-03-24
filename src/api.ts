@@ -157,54 +157,51 @@ export default async (router: GlinetController) => {
     }
   );
 
-  // server.get("/sms", async (request, reply) => {
-  //   try {
-  //     await router.readSms();
-  //     router.publish();
+  server.get("/sms", async (request, reply) => {
+    try {
+      await router.modem.get_sms_list();
 
-  //     reply.type("application/json").code(200);
-  //     return router.status.sms;
-  //   } catch (error) {
-  //     console.log(error);
+      reply.type("application/json").code(200);
+      return router.modem.sms;
+    } catch (error) {
+      console.log(error);
 
-  //     reply.type("application/json").code(500);
-  //     return { sms: "error", error };
-  //   }
-  // });
+      reply.type("application/json").code(500);
+      return { sms: "error", error };
+    }
+  });
 
-  // server.post<{ Body: { message: string; recipient: string } }>(
-  //   "/sms",
-  //   {
-  //     schema: {
-  //       body: {
-  //         type: "object",
-  //         required: ["recipient", "message"],
-  //         properties: {
-  //           message: { type: "string" },
-  //           recipient: { type: "string" },
-  //         },
-  //       },
-  //     },
-  //   },
-  //   async (request, reply) => {
-  //     try {
-  //       const { message, recipient } = request.body;
-  //       if (recipient && message) {
-  //         await router.sendSms({ message, recipient });
-  //         reply.type("application/json").code(200);
-  //         return { sms: "ok", recipient, message };
-  //       } else {
-  //         router.publish();
-  //         return;
-  //       }
-  //     } catch (error) {
-  //       console.log(error);
+  server.post<{ Body: { body: string; phone_number: string } }>(
+    "/sms",
+    {
+      schema: {
+        body: {
+          type: "object",
+          required: ["body", "phone_number"],
+          properties: {
+            body: { type: "string" },
+            phone_number: { type: "string" },
+          },
+        },
+      },
+    },
+    async (request, reply) => {
+      try {
+        const { body, phone_number } = request.body;
+        if (phone_number && body) {
+          const sms = await router.modem.send_sms({ body, phone_number });
+          reply.type("application/json").code(200);
+          return { sms: "ok", ...sms };
+        }
+      } catch (error) {
+        console.log(error);
 
-  //       reply.type("application/json").code(500);
-  //       return { sms: "error", error };
-  //     }
-  //   }
-  // );
+        reply.type("application/json").code(500);
+        return { sms: "error", error };
+      }
+    }
+  );
+
   const start = async () => {
     try {
       await server.listen({ port: 3000, host: "0.0.0.0" });

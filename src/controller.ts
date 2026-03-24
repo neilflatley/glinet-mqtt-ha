@@ -12,6 +12,9 @@ class GlinetController {
   private password = "MyPassword";
   private routerUri = `http://${this.host}`;
 
+  public smsPhoneNumber = "07000000000";
+  public smsBody = "";
+
   get api_uri() {
     return `${this.routerUri}/rpc`;
   }
@@ -30,6 +33,9 @@ class GlinetController {
   get modem_port() {
     return this.modem.info?.result?.modems[0].at_port || "/dev/mhi_DUN";
   }
+  get phone_number() {
+    return this.modem.info?.result?.modems[0].simcard.phone_number || "";
+  }
   get state() {
     const { location, modem, system } = this;
     if (Object.keys(system.status.result || {}).length)
@@ -40,6 +46,7 @@ class GlinetController {
         modem_info: modem.info.result,
         modem_cells_info: modem.cells_info.result,
         modem_tower_info: modem.tower_info,
+        modem_sms: modem.sms.result,
         ip_location: location.current,
       };
     return null;
@@ -65,7 +72,7 @@ class GlinetController {
         | [string | undefined, string, string]
         | [string | undefined, string, string, any]
         | { [param: string]: string },
-      method = "call"
+      method = "call",
     ): Promise<[Error, undefined] | [null, AxiosResponse]> => {
       if (method === "call" && !this.sid) await this.login();
       // Add latest sid to first array param
@@ -77,7 +84,7 @@ class GlinetController {
           method,
           params,
           id: 0,
-        })
+        }),
       );
       if (err) return [err, undefined];
       if (res?.data?.error?.message === "Access denied") {
@@ -110,6 +117,7 @@ class GlinetController {
     tower_info: {} as any,
     cells_info: {} as any,
     info: {} as any,
+    sms: {} as any,
     status: {} as any,
     get_cells_info: async () => {
       // if (!Object.keys(this.modem.info).length) await this.modem.get_info();
@@ -121,6 +129,10 @@ class GlinetController {
     get_info: async () => {
       this.modem.info = await this.api.call("modem", "get_info");
       return this.modem.info;
+    },
+    get_sms_list: async () => {
+      this.modem.sms = await this.api.call("modem", "get_sms_list");
+      return this.modem.sms;
     },
     get_status: async () => {
       if (!Object.keys(this.modem.info).length) await this.modem.get_info();
@@ -183,6 +195,23 @@ class GlinetController {
       });
       return at.result.response;
     },
+    send_sms: async ({
+      body = this.smsBody,
+      phone_number = this.smsPhoneNumber,
+    }: {
+      body?: string;
+      phone_number?: string;
+    } = {}) => {
+      const payload = {
+        body,
+        bus: this.modem_bus,
+        phone_number,
+        sender: this.phone_number,
+        timeout: 0,
+      };
+      const sms = await this.api.call("modem", "send_sms", payload);
+      return { ...(sms || {}), payload };
+    },
   };
   system = {
     info: {} as any,
@@ -212,6 +241,7 @@ class GlinetController {
       modem.get_status,
       modem.get_cells_info,
       modem.get_tower_info,
+      modem.get_sms_list,
     ];
 
     // Make the API calls sequentially (takes longer)
@@ -297,56 +327,6 @@ class GlinetController {
       throw error;
     }
   };
-
-  // readSms = async () => {
-  //   if (this.user_role !== "Admin") {
-  //     await this.login();
-  //   }
-  //   if (this.user_role !== "Admin") {
-  //     throw new Error(
-  //       `Cannot read sms unless user_role is Admin - user_role: ${this.user_role}`
-  //     );
-  //   } else {
-  //     return this.status?.sms;
-  //   }
-  // };
-
-  // sendSms = async ({
-  //   message = this.message,
-  //   recipient = this.recipient,
-  // }: {
-  //   message?: string;
-  //   recipient?: string;
-  // } = {}) => {
-  //   console.log(`[sms] send ${recipient} "${message}"`);
-  //   if (this.user_role !== "Admin") {
-  //     await this.login();
-  //   }
-  //   if (this.user_role !== "Admin") {
-  //     throw new Error(
-  //       `Cannot send sms unless user_role is Admin - user_role: ${this.user_role}`
-  //     );
-  //   } else if (!message || !recipient) {
-  //     throw new Error(`Cannot send sms required input(s) missing`);
-  //   } else {
-  //     const [err, res] = await this.post({
-  //       url: this.send_sms_uri,
-  //       jar: this.jar,
-  //       form: {
-  //         token: this.token,
-  //         action: "send",
-  //         "sms.sendMsg.clientId": "netgear_aircard_rest",
-  //         "sms.sendMsg.receiver": recipient,
-  //         "sms.sendMsg.text": message,
-  //       },
-  //     });
-  //     if (err) throw err;
-  //     if (res.statusCode > 200 && res.statusCode < 400)
-  //       console.log(
-  //         `[sms] send ${res.statusCode} ${res.statusMessage} ${res.headers?.location}`
-  //       );
-  //   }
-  // };
 
   // script = async () => {
   //   // Step1: Get encryption parameters by challenge method

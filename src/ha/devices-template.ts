@@ -23,21 +23,6 @@ export const devices = (model: string) => ({
       device_class: `battery_charging`,
       entity_category: `diagnostic`,
     },
-    // {
-    //   name: `Unread SMS`,
-    //   unique_id: `glinet_${model}_unread_sms`,
-    //   object_id: `glinet_${model}_unread_sms`,
-    //   value_template: `{{ value_json.sms.unreadMsgs > 0 }}`,
-    //   payload_on: true,
-    //   payload_off: false,
-    //   availability: {
-    //     topic: `glinet-${model}/attribute`,
-    //     value_template: `{{ value_json.sms.ready }}`,
-    //     payload_available: true,
-    //   },
-    //   json_attributes_topic: `glinet-${model}/attribute`,
-    //   json_attributes_template: `{{ value_json.sms | tojson }}`,
-    // },
   ],
   button: [
     {
@@ -54,20 +39,19 @@ export const devices = (model: string) => ({
       device_class: `restart`,
       entity_category: `config`,
     },
-    // {
-    //   name: `Send SMS`,
-    //   unique_id: `glinet_${model}_send_sms`,
-    //   object_id: `glinet_${model}_send_sms`,
-    //   availability: {
-    //     topic: `glinet-${model}/attribute`,
-    //     value_template: `{{ value_json.sms.sendEnabled }}`,
-    //     payload_available: true,
-    //   },
-    //   command_topic: `glinet-${model}/command`,
-    //   command_template:
-    //     "send_sms={`msg`:`{{ states('text.glinet_${model}_sms_message') }}`,`to`:`{{ states('text.glinet_${model}_sms_recipient') }}`}",
-    //   icon: `mdi:message-plus`,
-    // },
+    {
+      name: `Send SMS`,
+      unique_id: `glinet_${model}_send_sms`,
+      object_id: `glinet_${model}_send_sms`,
+      availability: {
+        topic: `glinet-${model}/attribute`,
+        value_template: `{{ value_json.modem_info.modems[0].sms_support }}`,
+        payload_available: true,
+      },
+      command_topic: `glinet-${model}/command`,
+      command_template: `send_sms={"msg":"{{ states('text.glinet_${model}_sms_message') }}","to":"{{ states('text.glinet_${model}_sms_recipient') }}"}`,
+      icon: `mdi:message-plus`,
+    },
   ],
   sensor: [
     {
@@ -329,6 +313,16 @@ export const devices = (model: string) => ({
       entity_category: `diagnostic`,
     },
     {
+      name: `Unread SMS`,
+      unique_id: `glinet_${model}_unread_sms`,
+      object_id: `glinet_${model}_unread_sms`,
+      value_template: `{{ value_json.modem_sms.list | selectattr('type', 'equalto', 2) | selectattr('status', 'equalto', 0) | list | length }}`,
+      payload_on: true,
+      payload_off: false,
+      json_attributes_topic: `glinet-${model}/attribute`,
+      json_attributes_template: `{{ value_json.modem_sms.list | selectattr('type', 'equalto', 2) | list | tojson }}`,
+    },
+    {
       name: `WAN interface`,
       enabled_by_default: false,
       unique_id: `glinet_${model}_wan_interface`,
@@ -351,24 +345,24 @@ export const devices = (model: string) => ({
       entity_category: `diagnostic`,
     },
   ],
-  // text: [
-  //   {
-  //     name: `SMS message`,
-  //     unique_id: `glinet_${model}_sms_message`,
-  //     object_id: `glinet_${model}_sms_message`,
-  //     command_topic: `glinet-${model}/command`,
-  //     command_template: `set_msg={{ value }}`,
-  //     state_topic: `glinet_${model}/sms/message`,
-  //     icon: `mdi:message-text`,
-  //   },
-  //   {
-  //     name: `SMS recipient`,
-  //     unique_id: `glinet_${model}_sms_recipient`,
-  //     object_id: `glinet_${model}_sms_recipient`,
-  //     command_topic: `glinet-${model}/command`,
-  //     command_template: `set_to={{ value }}`,
-  //     state_topic: `glinet_${model}/sms/recipient`,
-  //     icon: `mdi:message-question`,
-  //   },
-  // ],
+  text: [
+    {
+      name: `SMS message`,
+      unique_id: `glinet_${model}_sms_message`,
+      object_id: `glinet_${model}_sms_message`,
+      command_topic: `glinet-${model}/command`,
+      command_template: `set_sms_msg={{ value }}`,
+      state_topic: `glinet_${model}/sms/message`,
+      icon: `mdi:message-text`,
+    },
+    {
+      name: `SMS recipient`,
+      unique_id: `glinet_${model}_sms_recipient`,
+      object_id: `glinet_${model}_sms_recipient`,
+      command_topic: `glinet-${model}/command`,
+      command_template: `set_sms_to={{ value }}`,
+      state_topic: `glinet_${model}/sms/recipient`,
+      icon: `mdi:message-question`,
+    },
+  ],
 });
