@@ -20,6 +20,7 @@ type Device = {
   name: string;
   manufacturer: string;
   model: string;
+  serial_number: string;
   hw_version: string;
   sw_version: string;
   configuration_url: string;

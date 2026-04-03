@@ -10,7 +10,15 @@
     "build": "swc src --out-dir dist",
     "build:watch": "swc src -w --out-dir dist",
     "start:dev": "concurrently \"npm run build:watch\" \"nodemon --watch 'dist/**/*.js' -e js dist/app.js\"",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest run",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:ci": "vitest run --reporter=junit",
+    "test:watch": "vitest --watch",
+    "test:unit": "vitest run src/__tests__/**/*.test.ts",
+    "test:integration": "vitest run src/__tests__/integration/**/*.test.ts",
+    "test:integration:watch": "vitest --watch src/__tests__/integration/**/*.test.ts",
+    "test:integration:ci": "vitest run src/__tests__/integration/**/*.test.ts --reporter=junit"
   },
   "keywords": [],
   "author": "Neil Flatley",
@@ -22,12 +30,14 @@
     "@swc/cli": "^0.1.65",
     "@swc/core": "^1.4.17",
     "@swc/plugin-transform-imports": "^1.5.123",
-    "@types/node": "^20.10.2",
+    "@types/node": "^20.19.37",
     "@types/request": "^2.48.12",
+    "@vitest/coverage-v8": "^4.1.2",
     "concurrently": "^8.2.2",
     "nodemon": "^3.0.2",
     "tsx": "^4.6.2",
-    "typescript": "^5.3.2"
+    "typescript": "^5.3.2",
+    "vitest": "^4.1.2"
   },
   "dependencies": {
     "await-to-js": "^3.0.0",

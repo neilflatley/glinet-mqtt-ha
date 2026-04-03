@@ -150,6 +150,15 @@ Send an SMS via the router:
 - run `npm run src` to run using TypeScript source files
   - or run `npm run build` and `node .` to run using transpiled ES Module JavaScript
 
+### Testing
+
+- `npm run test` — Run tests in watch mode during development
+- `npm run test:run` — Run all unit tests once (CI-friendly)
+- `npm run test:coverage` — Run tests with coverage report (HTML)
+- `npm run test:ci` — Run unit tests with JUnit reporter for CI/CD
+- `npm run test:integration` — Run integration tests only
+- `npm run test:integration:ci` — Run integration tests with JUnit reporter
+
 ### Credentials and other variables
 
 - Edit the npm script in `package.json`, add the variable=value you require after the `cross-env` command, seperate multiple variables with a space. e.g `"src": "cross-env GLINET_HOST=192.168.8.254 GLINET_PASSWORD=YourPassword node --import tsx src/app.ts"`
