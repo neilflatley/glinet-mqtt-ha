@@ -84,17 +84,19 @@ export class Mqtt {
         quit = true;
       });
 
-      // this is the signal that nodemon uses
-      process.once("SIGUSR2", () => {
+      this.stopPolling = () => {
         quit = true;
-        process.kill(process.pid, "SIGUSR2");
-      });
+      };
 
       while (quit === false) {
         await sleep(this.refresh * 1000);
         await this.router.refresh();
       }
     }
+  };
+
+  stopPolling = () => {
+    // no-op if called before birth() initializes it
   };
 
   discovery = async () => {

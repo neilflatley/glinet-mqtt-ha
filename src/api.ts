@@ -206,7 +206,6 @@ export default async (router: GlinetController) => {
     try {
       await server.listen({ port: 3000, host: "0.0.0.0" });
       console.log(`[api] Glinet api is running on port 3000`);
-
     } catch (err) {
       server.log.error(err);
       process.exit(1);
@@ -219,9 +218,10 @@ export default async (router: GlinetController) => {
     server.log.info(`Server restarting. Code:${code}`);
   });
 
-  // this is the signal that nodemon uses
-  process.once("SIGUSR2", () => {
-    server.log.info("Server restarting");
-    process.kill(process.pid, "SIGUSR2");
-  });
+  const closeServer = async () => {
+    await server.close();
+    server.log.info("Server closed");
+  };
+
+  return { server, closeServer };
 };
