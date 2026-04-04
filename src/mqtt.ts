@@ -36,9 +36,6 @@ export class Mqtt {
 
   birth = async () => {
     if (!this.client || !this.router) return;
-    this.client.on("end", () => {
-      this.client = undefined;
-    });
     // subscribe to ha birth message and republish discovery messages
     // subscribe to ha device command topics
     this.client.subscribe([
@@ -97,6 +94,18 @@ export class Mqtt {
 
   stopPolling = () => {
     // no-op if called before birth() initializes it
+  };
+
+  disconnect = async () => {
+    if (!this.client) return;
+
+    // Fire-and-forget disconnect - no need to await
+    this.client.end(true);
+    
+    // Clear the client reference immediately
+    this.client = undefined;
+    
+    console.log('[mqtt] client disconnected');
   };
 
   discovery = async () => {

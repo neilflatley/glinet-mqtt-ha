@@ -16,12 +16,36 @@ if (isApi) {
   closeServer = serverClose;
 }
 
-process.on("SIGUSR2", () => {
+process.on("SIGUSR2", async () => {
   console.log("[app] Restarting due to SIGUSR2...");
   
+  const operations: Promise<void>[] = [];
+  
   if (closeServer) {
-    closeServer();
+    operations.push(
+      (async () => {
+        try {
+          await closeServer();
+        } catch (error) {
+          console.error(`[app:shutdown] API server error:`, error);
+        }
+      })()
+    );
   }
+  
+  if (mqtt.client) {
+    operations.push(
+      (async () => {
+        try {
+          await mqtt.disconnect();
+        } catch (error) {
+          console.error(`[app:shutdown] MQTT disconnect error:`, error);
+        }
+      })()
+    );
+  }
+  
+  await Promise.allSettled(operations).catch(() => {});
   
   mqtt.stopPolling();
   
@@ -29,3 +53,35 @@ process.on("SIGUSR2", () => {
     process.kill(process.pid, "SIGUSR2");
   }, 100);
 });
+
+// Exit handler for unhandled exits
+process.on("exit", async () => {
+  console.log("[app] Process exiting, cleaning up...");
+  
+  if (mqtt.client) {
+    try {
+      await mqtt.disconnect();
+    } catch {
+      // Ignore errors during exit
+    }
+  }
+});
+
+// SIGINT handler (Ctrl+C)
+process.on("SIGINT", async () => {
+  console.log("[app] Shutting down (SIGINT)...");
+  await cleanup();
+  process.exit(0);
+});
+
+// SIGTERM handler (for orchestration)
+process.on("SIGTERM", async () => {
+  console.log("[app] Shutting down (SIGTERM)...");
+  await cleanup();
+  process.exit(0);
+});
+
+const cleanup = async () => {
+  if (closeServer) await closeServer().catch(() => {});
+  if (mqtt.client) await mqtt.disconnect().catch(() => {});
+};
