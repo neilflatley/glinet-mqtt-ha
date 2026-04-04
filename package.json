@@ -7,8 +7,8 @@
   "scripts": {
     "src": "cross-env node --import tsx src/app.ts",
     "server": "node dist/app.js",
-    "build": "swc src --out-dir dist",
-    "build:watch": "swc src -w --out-dir dist",
+    "build": "rimraf dist && swc src --out-dir dist --strip-leading-paths --ignore **/__tests__",
+    "build:watch": "swc src -w --out-dir dist --strip-leading-paths --ignore **/__tests__",
     "start:dev": "concurrently \"npm run build:watch\" \"nodemon --watch 'dist/**/*.js' -e js dist/app.js\"",
     "test": "vitest run",
     "test:run": "vitest run",
@@ -35,6 +35,7 @@
     "@vitest/coverage-v8": "^4.1.2",
     "concurrently": "^9.2.1",
     "nodemon": "^3.1.14",
+    "rimraf": "^6.1.3",
     "tsx": "^4.21.0",
     "typescript": "^6.0.2",
     "vitest": "^4.1.2"
