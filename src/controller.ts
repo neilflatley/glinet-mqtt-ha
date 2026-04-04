@@ -36,7 +36,7 @@ class GlinetController {
   get phone_number() {
     return this.modem.info?.result?.modems[0].simcard.phone_number || "";
   }
-  get state() {
+  get state(): GlinetState {
     const { location, modem, system } = this;
     if (Object.keys(system.status.result || {}).length)
       return {
@@ -49,7 +49,7 @@ class GlinetController {
         modem_sms: modem.sms.result,
         ip_location: location.current,
       };
-    return null;
+    return {};
   }
 
   constructor(
@@ -73,7 +73,7 @@ class GlinetController {
         | [string | undefined, string, string, any]
         | { [param: string]: string },
       method = "call",
-    ): Promise<[Error, undefined] | [null, AxiosResponse]> => {
+    ): Promise<[Error, undefined] | [null, AxiosResponse<RpcResponse<any>>]> => {
       if (method === "call" && !this.sid) await this.login();
       // Add latest sid to first array param
       if (Array.isArray(params)) params[0] = this.sid;
@@ -101,7 +101,7 @@ class GlinetController {
     },
   };
   location = {
-    current: {} as any,
+    current: {} as LocationResult,
     get_location: async () => {
       const [err, response] = await to(axios.get("http://ip-api.com/json"));
       if (err) {
@@ -114,11 +114,11 @@ class GlinetController {
     },
   };
   modem = {
-    tower_info: {} as any,
-    cells_info: {} as any,
-    info: {} as any,
-    sms: {} as any,
-    status: {} as any,
+    tower_info: {} as ModemTowerInfoResult,
+    cells_info: {} as RpcResponse<ModemCellsInfoResult>,
+    info: {} as RpcResponse<ModemInfoResult>,
+    sms: {} as RpcResponse<ModemSmsListResult>,
+    status: {} as RpcResponse<ModemStatusResult>,
     get_cells_info: async () => {
       // if (!Object.keys(this.modem.info).length) await this.modem.get_info();
       this.modem.cells_info = await this.api.call("modem", "get_cells_info", {
@@ -214,8 +214,8 @@ class GlinetController {
     },
   };
   system = {
-    info: {} as any,
-    status: {} as any,
+    info: {} as RpcResponse<SystemInfoResult>,
+    status: {} as RpcResponse<SystemStatusResult>,
     get_info: async () => {
       this.system.info = await this.api.call("system", "get_info");
       return this.system.info;

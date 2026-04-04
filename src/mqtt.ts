@@ -14,6 +14,7 @@ export class Mqtt {
 
   get devices() {
     const { model, state } = this.router;
+    if (!state || !model) return {};
     return mapDevices(state, model);
   }
   get message() {
