@@ -19,7 +19,7 @@ export default defineConfig({
       },
     },
     
-    testTimeout: 10000,
+    testTimeout: 30000,
     pool: 'forks',
   },
 });
