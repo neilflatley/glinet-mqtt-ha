@@ -1,0 +1,34 @@
+{
+  "system_info": {
+    "sn": "test-serial-12345",
+    "model": "GL.iNet GL-MT3000",
+    "board_info": {
+      "hostname": "gl-mt3000",
+      "model": "GL-MT3000",
+      "architecture": "armv7l"
+    },
+    "firmware_version": "3.201.1",
+    "hardware_version": "1.0",
+    "vendor": "GL.iNet",
+    "firmware_type": "stable",
+    "mac": "00:11:22:33:44:55",
+    "cpu_info": {
+      "cpu_count": 2,
+      "cpu_model": "ARMv7 Processor rev 4 (v7l)",
+      "cpu_speed": "1.4GHz"
+    },
+    "memory_info": {
+      "total_memory": 512,
+      "free_memory": 300,
+      "used_memory": 212
+    }
+  },
+  "uptime": 123456789,
+  "load_average": [0.1, 0.2, 0.3],
+  "network_info": {
+    "wan_ipv4": "192.168.1.100",
+    "wan_ipv6": "::1",
+    "lan_ipv4": "192.168.8.1",
+    "lan_ipv6": "::1"
+  }
+}

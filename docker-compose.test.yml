@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  mqtt-broker:
+    image: eclipse-mosquitto:latest
+    ports:
+      - "1884:1883"
+      - "9002:9001"
+    networks:
+      - test-network
+
+networks:
+  test-network:
+    driver: bridge

@@ -1,0 +1,17 @@
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "status": {
+      "online": true,
+      "uptime": "123456",
+      "cpu": {
+        "usage": "15"
+      },
+      "memory": {
+        "total": "1048576",
+        "used": "262144"
+      }
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "modem_status": {
+    "connection_type": "4G",
+    "signal": {
+      "rssi": -70,
+      "rsrq": -9,
+      "sinr": 12,
+      "band": 3,
+      "earfcn": 1000
+    },
+    "operator": "Test Provider",
+    "imei": "123456789012345",
+    "imsi": "123456789012345",
+    "apn": "test.apn",
+    "roaming": false,
+    "network_type": "LTE"
+  },
+  "connection_state": "connected"
+}

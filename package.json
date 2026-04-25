@@ -18,7 +18,8 @@
     "test:unit": "vitest run src/__tests__/**/*.test.ts",
     "test:integration": "vitest run --config vitest.config.ts src/__tests__/integration",
     "test:integration:watch": "vitest --watch src/__tests__/integration/**/*.test.ts",
-    "test:integration:ci": "vitest run src/__tests__/integration/**/*.test.ts --reporter=junit"
+    "test:integration:ci": "vitest run src/__tests__/integration/**/*.test.ts --reporter=junit",
+    "test:e2e": "vitest run src/__tests__/e2e/e2e.test.ts"
   },
   "keywords": [],
   "author": "Neil Flatley",
