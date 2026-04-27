@@ -11,15 +11,15 @@ jobs:
     
     services:
       mqtt:
-        image: eclipse-mosquitto:latest
+        image: eclipse-mosquitto:2
         options: >-
-          --health-cmd "mosquitto_healthcheck.sh"
+          --health-cmd "mosquitto_sub -t test -C 1 -W 2 || exit 1"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+          --health-start-period 10s
         ports:
           - 1884:1883
-          - 9002:9001
 
     steps:
       - name: Checkout code
@@ -55,5 +55,5 @@ jobs:
           retention-days: 30
 
       - name: Run coverage report
-        if: always()
+        if: success()
         run: npm run test:coverage
