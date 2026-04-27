@@ -13,7 +13,7 @@ jobs:
       mqtt:
         image: eclipse-mosquitto:2
         options: >-
-          --health-cmd "mosquitto_sub -t test -C 1 -W 2 || exit 1"
+          --health-cmd "mosquitto_pub -t healthcheck -m ok -q 0 || exit 1"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
