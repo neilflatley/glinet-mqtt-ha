@@ -1,137 +1,103 @@
-// Shared utilities and helpers for E2E tests
+// Shared utilities for E2E tests.
+import { TEST_CONFIG } from './e2e.setup.js'
 
-// Test data fixtures
-export const TestData = {
-  // Login response fixture
-  loginResponse: {
-    code: 0,
-    message: "success"
-  },
-  
-  // System status fixture
-  systemStatus: {
-    "system_info": {
-      "sn": "test-serial-12345",
-      "model": "GL.iNet GL-MT3000",
-      "board_info": {
-        "hostname": "gl-mt3000",
-        "model": "GL-MT3000",
-        "architecture": "armv7l"
-      },
-      "firmware_version": "3.201.1",
-      "hardware_version": "1.0",
-      "vendor": "GL.iNet",
-      "firmware_type": "stable",
-      "mac": "00:11:22:33:44:55",
-      "cpu_info": {
-        "cpu_count": 2,
-        "cpu_model": "ARMv7 Processor rev 4 (v7l)",
-        "cpu_speed": "1.4GHz"
-      },
-      "memory_info": {
-        "total_memory": 512,
-        "free_memory": 300,
-        "used_memory": 212
-      }
-    },
-    "uptime": 123456789,
-    "load_average": [0.1, 0.2, 0.3],
-    "network_info": {
-      "wan_ipv4": "192.168.1.100",
-      "wan_ipv6": "::1",
-      "lan_ipv4": "192.168.8.1",
-      "lan_ipv6": "::1"
-    }
-  },
-  
-  // Modem status fixture
-  modemStatus: {
-    "modem_status": {
-      "connection_type": "4G",
-      "signal": {
-        "rssi": -70,
-        "rsrq": -9,
-        "sinr": 12,
-        "band": 3,
-        "earfcn": 1000
-      },
-      "operator": "Test Provider",
-      "imei": "123456789012345",
-      "imsi": "123456789012345",
-      "apn": "test.apn",
-      "roaming": false,
-      "network_type": "LTE"
-    },
-    "connection_state": "connected"
-  },
-  
-  // Location fixture
-  locationStatus: {
-    "location": {
-      "lat": 40.7128,
-      "lng": -74.0060,
-      "accuracy": 50,
-      "altitude": 10,
-      "speed": 0,
-      "course": 0
-    }
-  },
-  
-  // Status fixture
-  routerStatus: {
-    "status": {
-      "cpu_usage": 15,
-      "memory_usage": 40,
-      "wan_status": "connected",
-      "lan_status": "connected",
-      "wireless_status": "connected"
-    }
-  }
+/**
+ * Make a JSON-RPC 2.0 call to the mock router.
+ * Mirrors the format the real GlinetController uses.
+ */
+export async function rpcCall(
+  method: string,
+  params: unknown,
+  id = 0,
+): Promise<{ jsonrpc: string; id: number; result?: unknown; error?: { code: number; message: string } }> {
+  const res = await fetch(`http://localhost:${TEST_CONFIG.MOCK_ROUTER_PORT}/rpc`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ jsonrpc: '2.0', method, params, id }),
+  })
+  return res.json()
 }
 
-// Utility functions for E2E testing
-export const E2EUtils = {
-  // Helper function to validate response data structure
-  validateResponseStructure: (response: any, expectedFields: string[]) => {
-    if (!response || typeof response !== 'object') {
-      throw new Error('Invalid response data')
+/**
+ * Full login flow: challenge → hash → login → return sid.
+ */
+export async function doLogin(
+  username = 'root',
+  password = 'test-password',
+): Promise<string> {
+  // Step 1: challenge
+  const challenge = await rpcCall('challenge', { username })
+  if (challenge.error) throw new Error(`Challenge failed: ${challenge.error.message}`)
+
+  const { alg, salt, nonce } = (challenge.result as { alg: string; salt: string; nonce: string })
+
+  // Step 2: generate cipher (matching unixpass library)
+  // We can't easily replicate unixpass in a utility, so we just return the
+  // raw params and let the mock router accept any hash.
+  // The mock router accepts any hash for testing.
+  const hash = 'mock-hash-for-testing'
+
+  // Step 3: login
+  const login = await rpcCall('login', { username, hash })
+  if (login.error) throw new Error(`Login failed: ${login.error.message}`)
+
+  return (login.result as { sid: string }).sid
+}
+
+/**
+ * Make a "call" method request with a valid sid.
+ */
+export async function rpcCallWithSid(
+  sid: string,
+  module: string,
+  action: string,
+  extra?: Record<string, unknown>,
+): Promise<unknown> {
+  const params = [sid, module, action]
+  if (extra) params.push(extra)
+
+  const res = await rpcCall('call', params)
+  if (res.error) throw new Error(`RPC call failed: ${res.error.message}`)
+  return res.result
+}
+
+/**
+ * Retry a function with exponential backoff.
+ */
+export async function retry<T>(
+  fn: () => Promise<T>,
+  maxRetries = 3,
+  baseDelay = 1000,
+): Promise<T> {
+  let lastError: Error
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await fn()
+    } catch (e) {
+      lastError = e as Error
+      if (i === maxRetries - 1) break
+      await new Promise((r) => setTimeout(r, baseDelay * 2 ** i))
     }
-    
-    for (const field of expectedFields) {
-      if (!(field in response)) {
-        throw new Error(`Missing required field: ${field}`)
-      }
-    }
-    
-    return true
-  },
-  
-  // Helper function to create test scenarios
-  createTestScenario: (name: string, setup: () => Promise<void>, execute: () => Promise<void>) => {
-    return {
-      name,
-      setup,
-      execute
-    }
-  },
-  
-  // Helper for retry logic with exponential backoff
-  retryWithBackoff: async <T>(fn: () => Promise<T>, maxRetries = 3, baseDelay = 1000): Promise<T> => {
-    let lastError: Error
-    
-    for (let i = 0; i < maxRetries; i++) {
-      try {
-        return await fn()
-      } catch (error) {
-        lastError = error as Error
-        if (i === maxRetries - 1) break
-        
-        // Exponential backoff delay
-        const delay = baseDelay * Math.pow(2, i)
-        await new Promise(resolve => setTimeout(resolve, delay))
-      }
-    }
-    
-    throw lastError
   }
+  throw lastError
+}
+
+/**
+ * Wait for MQTT message on a topic using the mqtt client library.
+ */
+export function waitForMqttMessage(
+  client: ReturnType<typeof import('mqtt').connectAsync>,
+  topic: string,
+  timeout = 10_000,
+): Promise<{ topic: string; payload: Buffer }> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(
+      () => reject(new Error(`Timeout waiting for message on ${topic}`)),
+      timeout,
+    )
+    client.once('message', (t, payload) => {
+      clearTimeout(timer)
+      if (t === topic) resolve({ topic, payload })
+    })
+  })
 }

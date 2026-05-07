@@ -1,67 +1,63 @@
-// E2E test setup and configuration
+// E2E test setup — starts MockRouter and configures env.
+// This file should only be imported by e2e.test.ts (the main entrypoint).
+// Individual scenario files should NOT import this file's hooks.
 import { beforeAll, afterAll } from 'vitest'
 import { MockRouter } from './mock-router.js'
+import GlinetController from '../../controller.js'
+import { mqtt } from '../../mqtt.js'
 
-// Global test configuration
 export const TEST_CONFIG = {
   MOCK_ROUTER_PORT: 8080,
-  MQTT_BROKER_URL: 'mqtt://localhost:1884',
-  TEST_TIMEOUT: 30000,
-  RETRY_ATTEMPTS: 3
+  MQTT_BROKER_URL: process.env.MQTT_HOST || 'mqtt://172.18.0.1:1884',
+  MQTT_REFRESH: 2, // seconds (short for tests)
+  MODEL: 'GL-MT3000',
 }
 
-// Global variables for test environment
-export let mockRouter: MockRouter | null = null
+let mockRouter: MockRouter | null = null
+let controller: GlinetController | null = null
 
-// Setup function to initialize test environment
+/**
+ * Start the mock router, set env vars, create controller.
+ */
 export async function setupE2ETestEnvironment() {
-  // Start mock router
-  mockRouter = new MockRouter()
+  mockRouter = new MockRouter(TEST_CONFIG.MOCK_ROUTER_PORT)
   await mockRouter.start()
-  
-  console.log('E2E test environment initialized')
+
+  process.env.GLINET_HOST = `localhost:${TEST_CONFIG.MOCK_ROUTER_PORT}`
+  process.env.GLINET_PASSWORD = 'test-password'
+  process.env.MQTT_REFRESH = String(TEST_CONFIG.MQTT_REFRESH)
+  process.env.GLINET_API = 'false'
+  if (!process.env.MQTT_HOST) {
+    process.env.MQTT_HOST = TEST_CONFIG.MQTT_BROKER_URL
+  }
+
+  controller = new GlinetController(
+    process.env.GLINET_HOST!,
+    process.env.GLINET_PASSWORD!,
+  )
+
+  console.log('[e2e-setup] mock router started on port', TEST_CONFIG.MOCK_ROUTER_PORT)
 }
 
-// Teardown function to clean up test environment
+/**
+ * Tear down: disconnect MQTT, stop mock router, clean env.
+ */
 export async function teardownE2ETestEnvironment() {
+  if (mqtt.stopPolling) mqtt.stopPolling()
+  await mqtt.disconnect()
+
   if (mockRouter) {
-    mockRouter.stop()
+    await mockRouter.stop()
     mockRouter = null
   }
-  
-  console.log('E2E test environment cleaned up')
+
+  delete process.env.GLINET_HOST
+  delete process.env.GLINET_PASSWORD
+  delete process.env.MQTT_HOST
+  delete process.env.MQTT_REFRESH
+  delete process.env.GLINET_API
+
+  console.log('[e2e-setup] cleaned up')
 }
 
-// Test utilities
-export const E2EUtils = {
-  // Helper to create test data fixtures
-  createTestData: (data: Record<string, any>) => {
-    return data
-  },
-  
-  // Helper to validate API responses
-  validateApiResponse: (response: any) => {
-    return response && typeof response === 'object'
-  },
-  
-  // Helper for retry logic
-  retry: async <T>(fn: () => Promise<T>, attempts: number = 3): Promise<T> => {
-    let lastError: Error | undefined
-    
-    for (let i = 0; i < attempts; i++) {
-      try {
-        return await fn()
-      } catch (error) {
-        lastError = error as Error
-        if (i === attempts - 1) break
-        // Wait before retrying
-        await new Promise(resolve => setTimeout(resolve, 1000))
-      }
-    }
-    
-    if (lastError) {
-      throw lastError
-    }
-    throw new Error('Retry failed with no error')
-  }
-}
+export { controller }

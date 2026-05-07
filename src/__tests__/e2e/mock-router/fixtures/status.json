@@ -1,17 +1,73 @@
 {
-  "code": 0,
-  "message": "success",
-  "data": {
-    "status": {
+  "network": [
+    {
       "online": true,
-      "uptime": "123456",
-      "cpu": {
-        "usage": "15"
-      },
-      "memory": {
-        "total": "1048576",
-        "used": "262144"
-      }
+      "up": true,
+      "interface": "wwan0"
+    },
+    {
+      "online": true,
+      "up": true,
+      "interface": "br-lan"
     }
+  ],
+  "wifi": [
+    {
+      "band": "2.4G",
+      "mld": false,
+      "ssid": "GL-MT3000-2.4G",
+      "encryption": "wpa2-psk",
+      "hidden": false,
+      "passwd": "",
+      "guest": false,
+      "name": "wifi2g",
+      "channel": 6,
+      "up": true
+    },
+    {
+      "band": "5G",
+      "mld": false,
+      "ssid": "GL-MT3000-5G",
+      "encryption": "wpa2-psk",
+      "hidden": false,
+      "passwd": "",
+      "guest": false,
+      "name": "wifi5g",
+      "channel": 36,
+      "up": true
+    }
+  ],
+  "service": [
+    { "name": "dhcp", "status": 1 },
+    { "name": "dns", "status": 1 }
+  ],
+  "client": [
+    { "wireless_total": 2, "cable_total": 1 }
+  ],
+  "system": {
+    "netnat_enabled": true,
+    "guest_ip": "192.168.8.100",
+    "flash_app": 10485760,
+    "ipv6_enabled": true,
+    "memory_buff_cache": 52428800,
+    "flash_free": 52428800,
+    "load_average": [0.1, 0.15, 0.1],
+    "mode": 0,
+    "cpu": { "temperature": 55 },
+    "lan_ip": "192.168.8.1",
+    "tzoffset": "UTC",
+    "lan_netmask": "255.255.255.0",
+    "time_sync_status": true,
+    "flash_total": 125829120,
+    "memory_total": 524288000,
+    "memory_free": 262144000,
+    "content_protection_enabled": false,
+    "ddns_enabled": false,
+    "uptime": 123456,
+    "qos_enabled": false,
+    "prio_enabled": false,
+    "timestamp": 1704067200,
+    "sqm_enabled": false,
+    "guest_netmask": "255.255.255.0"
   }
 }
