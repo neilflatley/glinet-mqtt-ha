@@ -8,7 +8,7 @@ Node.js app that polls a GL.iNet router's `/rpc` API and publishes status/sensor
 
 | Command | What it does |
 |---|---|
-| `npm run src` | Run TS source directly via `tsx` (dev) |
+| `npm run src` | Run TS source directly via `tsx` with `.env` support (dev) |
 | `npm run build` | Transpile TS → JS in `dist/` via SWC (excludes `__tests__`) |
 | `node .` | Run transpiled `dist/app.js` (requires `npm run build` first) |
 | `npm run start:dev` | SWC watch + nodemon hot-reload loop |
@@ -69,5 +69,5 @@ Node.js app that polls a GL.iNet router's `/rpc` API and publishes status/sensor
 
 - **ES Modules**: `"type": "module"` in package.json. All imports use `.js` or `.ts` extensions.
 - **No lint or typecheck scripts**: Repository has no `npm run lint` or `npm run typecheck`. TypeScript config has `noEmit: true` (type checking only, no output).
-- **`.env` files gitignored**: `.env` is in `.gitignore`. The `npm run src` script bakes credentials into `package.json` (hardcoded `GLINET_HOST` and `GLINET_PASSWORD`).
+- **`.env` files gitignored**: `.env` is in `.gitignore`. Use `.env` to set credentials for development instead of environment variables on the command line. The `npm run src` script loads `.env` automatically via `dotenv/config`.
 - **Node 20+ required**: `engines` field requires `>=20.6`. CI uses Node 20, Docker builder uses Node 22.

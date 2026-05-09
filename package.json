@@ -5,7 +5,7 @@
   "main": "dist/app.js",
   "type": "module",
   "scripts": {
-    "src": "cross-env node --import tsx src/app.ts",
+    "src": "node --import tsx --import dotenv/config src/app.ts",
     "server": "node dist/app.js",
     "build": "rimraf dist && swc src --out-dir dist --strip-leading-paths --ignore **/__tests__",
     "build:watch": "swc src -w --out-dir dist --strip-leading-paths --ignore **/__tests__",
@@ -45,6 +45,7 @@
     "await-to-js": "^3.0.0",
     "axios": "^1.14.0",
     "cross-env": "^10.1.0",
+    "dotenv": "^17.4.2",
     "esbuild": "^0.27.7",
     "fastify": "^5.8.4",
     "mqtt": "^5.15.1",
