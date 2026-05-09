@@ -60,7 +60,7 @@ Node.js app that polls a GL.iNet router's `/rpc` API and publishes status/sensor
 
 ## Docker
 
-- **Multi-stage build**: Stage 1 (`node:22-alpine`) installs deps + runs `npm run build`. Stage 2 copies `dist/` to `gcr.io/distroless/nodejs22-debian13`.
+- **Multi-stage build**: Stage 1 (`node:24-alpine`) installs deps + runs `npm run build`. Stage 2 copies `dist/` to `gcr.io/distroless/nodejs24-debian13`.
 - **Final image has no shell**: Distroless image runs `dist/app.js` directly. No `npm`, `node` REPL, or shell available in production.
 - **`npm ci --omit=dev`** in stage 2: production image only includes runtime dependencies.
 - **CI builds**: `build.yml` builds for amd64 and arm64, pushes to GHCR. `test-e2e.yml` runs E2E tests with Mosquitto service before merging to main.
@@ -70,4 +70,5 @@ Node.js app that polls a GL.iNet router's `/rpc` API and publishes status/sensor
 - **ES Modules**: `"type": "module"` in package.json. All imports use `.js` or `.ts` extensions.
 - **No lint or typecheck scripts**: Repository has no `npm run lint` or `npm run typecheck`. TypeScript config has `noEmit: true` (type checking only, no output).
 - **`.env` files gitignored**: `.env` is in `.gitignore`. Use `.env` to set credentials for development instead of environment variables on the command line. The `npm run src` script loads `.env` automatically via `dotenv/config`.
-- **Node 20+ required**: `engines` field requires `>=20.6`. CI uses Node 20, Docker builder uses Node 22.
+- **Node 20+ required**: `engines` field requires `>=20.6`. CI uses Node 24, Docker builder uses Node 24.
+- **Conventional commits**: Use `<type>: <description>` format (no scope needed for this project). Common types: `feat`, `fix`, `docs`, `chore`, `refactor`, `test`.
