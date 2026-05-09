@@ -22,14 +22,17 @@ export class Mqtt {
   }
   init = async (router: GlinetController) => {
     this.router = router;
-    if (!this.client && this.host) {
-      const client = await connectAsync(this.host);
+    if (!this.client) {
+      this.host = process.env.MQTT_HOST || this.host;
+      if (this.host) {
+        const client = await connectAsync(this.host);
 
-      if (client) {
-        this.client = client;
-        console.log(`[mqtt] connected client ${this.host}`);
-        await this.discovery();
-        await this.birth();
+        if (client) {
+          this.client = client;
+          console.log(`[mqtt] connected client ${this.host}`);
+          await this.discovery();
+          await this.birth();
+        }
       }
     }
     return this;

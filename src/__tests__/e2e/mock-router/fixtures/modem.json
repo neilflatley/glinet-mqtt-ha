@@ -1,0 +1,40 @@
+{
+  "modems": [
+    {
+      "type": 1,
+      "simcard": {
+        "phone_number": "+1234567890",
+        "iccid": "89014103211118510720",
+        "imsi": "310260123456789",
+        "lock_tower_support": false,
+        "qcfg_unsupport": false,
+        "at_port": "/dev/mhi_DUN",
+        "vendor": "Quectel",
+        "devices": ["at_port", "net_port"],
+        "protocols": ["UMTS", "LTE"],
+        "bus": "0001:01:00.0",
+        "name": "EC20",
+        "sms_support": true,
+        "signal_support": true,
+        "version": "EC20AR02A08M4G",
+        "imei": "860123040123456",
+        "lock_operator_support": false
+      },
+      "lock_tower_support": false,
+      "switch_status": 0,
+      "current_sim": "SIM1",
+      "network": {
+        "status": 1,
+        "traffic_total": "1073741824",
+        "ipv4": {
+          "gateway": "10.0.0.1",
+          "netmask": "255.255.255.255",
+          "dns": ["8.8.8.8", "8.8.4.4"],
+          "ip": "10.0.0.100"
+        }
+      },
+      "bus": "0001:01:00.0"
+    }
+  ],
+  "new_sms_count": 0
+}
