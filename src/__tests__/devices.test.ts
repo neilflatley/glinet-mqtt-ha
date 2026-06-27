@@ -1,135 +1,140 @@
-import { describe, it, expect } from 'vitest';
-import { mapDevices } from '../ha/devices';
+import { describe, it, expect } from "vitest";
+import { mapDevices } from "../ha/devices";
 
-describe('mapDevices', () => {
+describe("mapDevices", () => {
   const mockSystemInfo = {
-    sn: 'TEST123',
+    sn: "TEST123",
     board_info: {
-      hostname: 'router',
-      model: 'GL-MT3000',
-      architecture: 'armv7',
+      hostname: "router",
+      model: "GL-MT3000",
+      architecture: "armv7",
     },
-    firmware_version: '3.200',
+    firmware_version: "3.200",
   };
 
-  describe('null and undefined handling', () => {
-    it('returns empty object when state is null', () => {
-      const result = mapDevices(null, 'GL-MT3000');
+  describe("null and undefined handling", () => {
+    it("returns empty object when state is null", () => {
+      const result = mapDevices(null as unknown as GlinetState, "GL-MT3000");
       expect(result).toEqual({});
     });
 
-    it('returns empty object when state is undefined', () => {
-      const result = mapDevices(undefined as any, 'GL-MT3000');
+    it("returns empty object when state is undefined", () => {
+      const result = mapDevices(undefined as any, "GL-MT3000");
       expect(result).toEqual({});
     });
 
-    it('throws error when state is empty object (no system_info)', () => {
-      expect(() => mapDevices({}, 'GL-MT3000')).toThrow();
+    it("returns empty object when state is empty object (no system_info)", () => {
+      const result = mapDevices({}, "GL-MT3000");
+      expect(result).toEqual({});
+    });
+
+    it("throws error when system_info is empty object (no system_info.*)", () => {
+      expect(() => mapDevices({ system_info: {} as SystemInfoResult }, "GL-MT3000")).toThrow();
     });
   });
 
-  describe('device attribute mapping', () => {
-    it('maps device attributes correctly', () => {
+  describe("device attribute mapping", () => {
+    it("maps device attributes correctly", () => {
       const mockState = {
         system_info: mockSystemInfo,
       };
 
-      const result = mapDevices(mockState, 'GL-MT3000');
+      const result = mapDevices(mockState, "GL-MT3000");
       expect(result).toBeDefined();
     });
 
-    it('extracts manufacturer from model string', () => {
+    it("extracts manufacturer from model string", () => {
       const mockState = {
         system_info: mockSystemInfo,
       };
 
-      const result = mapDevices(mockState, 'GL-MT3000');
+      const result = mapDevices(mockState, "GL-MT3000");
       expect(result).toBeDefined();
     });
 
-    it('handles model string without space', () => {
+    it("handles model string without space", () => {
       const mockState = {
         system_info: {
           ...mockSystemInfo,
           board_info: {
             ...mockSystemInfo.board_info,
-            model: 'GLMT3000',
+            model: "GLMT3000",
           },
         },
       };
 
-      const result = mapDevices(mockState, 'GL-MT3000');
+      const result = mapDevices(mockState, "GL-MT3000");
       expect(result).toBeDefined();
     });
   });
 
-  describe('component mapping', () => {
-    it('returns object with component keys', () => {
+  describe("component mapping", () => {
+    it("returns object with component keys", () => {
       const mockState = {
         system_info: mockSystemInfo,
       };
 
-      const result = mapDevices(mockState, 'GL-MT3000');
-      expect(result).toHaveProperty('sensor');
+      const result = mapDevices(mockState, "GL-MT3000");
+      expect(result).toHaveProperty("sensor");
     });
 
-    it('includes state_topic for non-button/text components', () => {
+    it("includes state_topic for non-button/text components", () => {
       const mockState = {
         system_info: mockSystemInfo,
       };
 
-      const result = mapDevices(mockState, 'GL-MT3000');
+      const result = mapDevices(mockState, "GL-MT3000");
       if (result.sensor && result.sensor.length > 0) {
         const sensor = result.sensor[0];
-        expect(sensor).toHaveProperty('state_topic');
+        expect(sensor).toHaveProperty("state_topic");
       }
     });
   });
 
-  describe('device attribute structure', () => {
-    it('creates correct device identifier', () => {
+  describe("device attribute structure", () => {
+    it("creates correct device identifier", () => {
       const mockState = {
         system_info: mockSystemInfo,
       };
 
-      const result = mapDevices(mockState, 'GL-MT3000');
+      const result = mapDevices(mockState, "GL-MT3000");
       if (result.sensor && result.sensor.length > 0) {
         const sensor = result.sensor[0];
-        expect(sensor.device?.identifiers).toContain('TEST123');
+        expect(sensor.device?.identifiers).toContain("TEST123");
       }
     });
 
-    it('sets device name from hostname', () => {
+    it("sets device name from hostname", () => {
       const mockState = {
         system_info: mockSystemInfo,
       };
 
-      const result = mapDevices(mockState, 'GL-MT3000');
+      const result = mapDevices(mockState, "GL-MT3000");
       if (result.sensor && result.sensor.length > 0) {
         const sensor = result.sensor[0];
-        expect(sensor.device?.name).toBe('router');
+        expect(sensor.device?.name).toBe("router");
       }
     });
 
-    it('sets manufacturer from model string (first part before space)', () => {
+    it("sets manufacturer from model string (first part before space)", () => {
       const mockState = {
         system_info: mockSystemInfo,
       };
 
-      const result = mapDevices(mockState, 'GL-MT3000');
+      const result = mapDevices(mockState, "GL-MT3000");
       if (result.sensor && result.sensor.length > 0) {
         const sensor = result.sensor[0];
         // Model is "GL-MT3000" with no space, so manufacturer gets the whole string
-        expect(sensor.device?.manufacturer).toBe('GL-MT3000');
+        expect(sensor.device?.manufacturer).toBe("GL-MT3000");
       }
     });
 
-    it('sets model to undefined when no space in model string', () => {
+    it("sets model to undefined when no space in model string", () => {
       const mockState = {
         system_info: mockSystemInfo,
       };
 
-      const result = mapDevices(mockState, 'GL-MT3000');
+      const result = mapDevices(mockState, "GL-MT3000");
       if (result.sensor && result.sensor.length > 0) {
         const sensor = result.sensor[0];
         // Model is "GL-MT3000" with no space, so model is undefined
@@ -137,123 +142,123 @@ describe('mapDevices', () => {
       }
     });
 
-    it('sets serial number from sn', () => {
+    it("sets serial number from sn", () => {
       const mockState = {
         system_info: mockSystemInfo,
       };
 
-      const result = mapDevices(mockState, 'GL-MT3000');
+      const result = mapDevices(mockState, "GL-MT3000");
       if (result.sensor && result.sensor.length > 0) {
         const sensor = result.sensor[0];
-        expect(sensor.device?.serial_number).toBe('TEST123');
+        expect(sensor.device?.serial_number).toBe("TEST123");
       }
     });
 
-    it('sets hardware version from architecture', () => {
+    it("sets hardware version from architecture", () => {
       const mockState = {
         system_info: mockSystemInfo,
       };
 
-      const result = mapDevices(mockState, 'GL-MT3000');
+      const result = mapDevices(mockState, "GL-MT3000");
       if (result.sensor && result.sensor.length > 0) {
         const sensor = result.sensor[0];
-        expect(sensor.device?.hw_version).toBe('armv7');
+        expect(sensor.device?.hw_version).toBe("armv7");
       }
     });
 
-    it('sets software version from firmware_version', () => {
+    it("sets software version from firmware_version", () => {
       const mockState = {
         system_info: mockSystemInfo,
       };
 
-      const result = mapDevices(mockState, 'GL-MT3000');
+      const result = mapDevices(mockState, "GL-MT3000");
       if (result.sensor && result.sensor.length > 0) {
         const sensor = result.sensor[0];
-        expect(sensor.device?.sw_version).toBe('3.200');
+        expect(sensor.device?.sw_version).toBe("3.200");
       }
     });
   });
 
-  describe('edge cases', () => {
-    it('handles missing board_info', () => {
+  describe("edge cases", () => {
+    it("handles missing board_info", () => {
       const mockState = {
         system_info: {
-          sn: 'TEST123',
-          firmware_version: '3.200',
+          sn: "TEST123",
+          firmware_version: "3.200",
         },
       };
 
       // This should throw because board_info is required
-      expect(() => mapDevices(mockState, 'GL-MT3000')).toThrow();
+      expect(() => mapDevices(mockState, "GL-MT3000")).toThrow();
     });
 
-    it('handles missing firmware_version', () => {
+    it("handles missing firmware_version", () => {
       const mockState = {
         system_info: {
-          sn: 'TEST123',
+          sn: "TEST123",
           board_info: {
-            hostname: 'router',
-            model: 'GL-MT3000',
-            architecture: 'armv7',
+            hostname: "router",
+            model: "GL-MT3000",
+            architecture: "armv7",
           },
         },
       };
 
-      const result = mapDevices(mockState, 'GL-MT3000');
+      const result = mapDevices(mockState, "GL-MT3000");
       expect(result).toBeDefined();
     });
 
-    it('handles special characters in hostname', () => {
+    it("handles special characters in hostname", () => {
       const mockState = {
         system_info: {
-          sn: 'TEST123',
+          sn: "TEST123",
           board_info: {
-            hostname: 'router-with-dashes_and_underscores',
-            model: 'GL-MT3000',
-            architecture: 'armv7',
+            hostname: "router-with-dashes_and_underscores",
+            model: "GL-MT3000",
+            architecture: "armv7",
           },
-          firmware_version: '3.200',
+          firmware_version: "3.200",
         },
       };
 
-      const result = mapDevices(mockState, 'GL-MT3000');
+      const result = mapDevices(mockState, "GL-MT3000");
       expect(result).toBeDefined();
     });
 
-    it('handles very long serial number', () => {
+    it("handles very long serial number", () => {
       const mockState = {
         system_info: {
-          sn: 'A'.repeat(100),
+          sn: "A".repeat(100),
           board_info: {
-            hostname: 'router',
-            model: 'GL-MT3000',
-            architecture: 'armv7',
+            hostname: "router",
+            model: "GL-MT3000",
+            architecture: "armv7",
           },
-          firmware_version: '3.200',
+          firmware_version: "3.200",
         },
       };
 
-      const result = mapDevices(mockState, 'GL-MT3000');
+      const result = mapDevices(mockState, "GL-MT3000");
       expect(result).toBeDefined();
     });
   });
 
-  describe('model parameter', () => {
-    it('uses model parameter for state_topic', () => {
+  describe("model parameter", () => {
+    it("uses model parameter for state_topic", () => {
       const mockState = {
         system_info: mockSystemInfo,
       };
 
-      const result = mapDevices(mockState, 'CUSTOM-MODEL');
+      const result = mapDevices(mockState, "CUSTOM-MODEL");
       if (result.sensor && result.sensor.length > 0) {
         const sensor = result.sensor[0];
-        expect(sensor.state_topic).toContain('glinet-CUSTOM-MODEL');
+        expect(sensor.state_topic).toContain("glinet-CUSTOM-MODEL");
       }
     });
 
-    it('handles different model names', () => {
-      const models = ['GL-MT3000', 'GL-A1300', 'GL-AX1800'];
-      
+    it("handles different model names", () => {
+      const models = ["GL-MT3000", "GL-A1300", "GL-AX1800"];
+
       for (const model of models) {
         const mockState = {
           system_info: mockSystemInfo,
