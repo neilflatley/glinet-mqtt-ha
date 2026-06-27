@@ -111,9 +111,13 @@ A simple REST API to fetch status data and trigger a restart / reboot of the rou
 
 Returns status summary
 
-### GET http://{host}:3000/info
+### GET http://{host}:3000/ha-attribute
 
-Returns device info
+Returns the full device state JSON (same payload published to the MQTT `attribute` topic).
+
+### GET http://{host}:3000/cell_info
+
+Returns cell tower information (band, MCC/MNC, eNB ID, sector).
 
 ### GET http://{host}:3000/login
 
@@ -152,12 +156,33 @@ Send an SMS via the router:
 
 ### Testing
 
-- `npm run test` — Run tests in watch mode during development
-- `npm run test:run` — Run all unit tests once (CI-friendly)
+- `npm run test` — Run all unit + integration tests once
+- `npm run test:watch` — Run tests in watch mode during development
+- `npm run test:run` — Run all unit + integration tests once (alias for `test`)
 - `npm run test:coverage` — Run tests with coverage report (HTML)
-- `npm run test:ci` — Run unit tests with JUnit reporter for CI/CD
+- `npm run test:ci` — Run unit + integration tests with JUnit reporter for CI/CD
+- `npm run test:unit` — Run unit tests only
 - `npm run test:integration` — Run integration tests only
 - `npm run test:integration:ci` — Run integration tests with JUnit reporter
+- `npm run test:e2e` — Run end-to-end tests (requires a running Mosquitto broker)
+
+#### Running E2E Tests
+
+E2E tests need a Mosquitto broker. The default broker URL is `mqtt://172.29.0.100:1883` (set in `src/__tests__/e2e/e2e.setup.ts`). Override with `MQTT_HOST`.
+
+**Inside a code-server container** (broker on `shared-net`):
+```bash
+docker compose -f docker-compose.local.yml up -d
+npm run test:e2e
+docker compose -f docker-compose.local.yml down
+```
+
+**On localhost** (bare-metal Docker install):
+```bash
+docker run -d --name glinet-mqtt-ha-mosquitto -p 1884:1883 eclipse-mosquitto:latest
+MQTT_HOST=mqtt://localhost:1884 npm run test:e2e
+docker rm -f glinet-mqtt-ha-mosquitto
+```
 
 ### Credentials and other variables
 
