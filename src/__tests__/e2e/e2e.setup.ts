@@ -8,7 +8,7 @@ import { mqtt } from '../../mqtt.js'
 
 export const TEST_CONFIG = {
   MOCK_ROUTER_PORT: 8080,
-  MQTT_BROKER_URL: process.env.MQTT_HOST || 'mqtt://172.18.0.1:1884',
+  MQTT_BROKER_URL: process.env.MQTT_HOST || 'mqtt://172.29.0.100:1883',
   MQTT_REFRESH: 2, // seconds (short for tests)
   MODEL: 'GL-MT3000',
 }

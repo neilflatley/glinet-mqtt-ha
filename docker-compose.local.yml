@@ -1,0 +1,19 @@
+# Local dev only — CI uses GitHub Actions service containers instead.
+# Usage:
+#   docker compose -f docker-compose.local.yml up -d
+#   MQTT_HOST=mqtt://172.29.0.100:1883 npm run test:e2e
+#
+# On a bare-metal local machine (no shared-net), use port mapping instead:
+#   docker run -d --name mosquitto -p 1884:1883 eclipse-mosquitto:latest
+#   MQTT_HOST=mqtt://localhost:1884 npm run test:e2e
+
+services:
+  mqtt-broker:
+    image: eclipse-mosquitto:latest
+    networks:
+      shared-net:
+        ipv4_address: 172.29.0.100
+
+networks:
+  shared-net:
+    external: true
