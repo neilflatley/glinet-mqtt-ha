@@ -1,7 +1,7 @@
 import GlinetController from "src/controller.ts";
 import { devices } from "./devices-template.ts";
 
-const mapDeviceAttribute = (json: any): Device => ({
+const mapDeviceAttribute = (json: GlinetState & SystemInfoResult): Device => ({
   identifiers: [json.sn],
   name: json.board_info.hostname,
   manufacturer: json.board_info.model?.split(" ")[0],
@@ -9,12 +9,12 @@ const mapDeviceAttribute = (json: any): Device => ({
   serial_number: json.sn,
   hw_version: json.board_info.architecture,
   sw_version: `${json.firmware_version}`,
-  configuration_url: `http://${json.system.lan_ip}`,
+  configuration_url: `http://${json.system?.lan_ip}`,
 });
 
 export const mapDevices = (state: GlinetController["state"], model: string) => {
-  if (!state) return {};
-  const deviceAttribute = mapDeviceAttribute(state.system_info);
+  if (!state || !state.system_info) return {};
+  const deviceAttribute = mapDeviceAttribute({...state, ...state.system_info});
 
   const haDevices = Object.entries(devices(model));
 
@@ -27,7 +27,7 @@ export const mapDevices = (state: GlinetController["state"], model: string) => {
           d.state_topic = `glinet-${model}/attribute`;
         return d;
       }),
-    ])
+    ]),
   );
   return completeDevices;
 };
