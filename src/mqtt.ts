@@ -1,7 +1,7 @@
 import { MqttClient, connectAsync } from "mqtt";
 import { setTimeout as sleep } from "timers/promises";
-import { mapDevices } from "./ha/devices.js";
-import GlinetController from "./controller.js";
+import { mapDevices } from "./ha/devices.ts";
+import type GlinetController from "./controller.ts";
 
 export class Mqtt {
   client?: MqttClient;

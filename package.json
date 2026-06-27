@@ -30,7 +30,6 @@
   "devDependencies": {
     "@swc/cli": "^0.8.1",
     "@swc/core": "^1.15.21",
-    "@swc/plugin-transform-imports": "^12.8.0",
     "@types/node": "^25.5.2",
     "@types/request": "^2.48.13",
     "@vitest/coverage-v8": "^4.1.2",

@@ -7,19 +7,7 @@
     },
     "target": "esnext",
     "baseUrl": ".",
-    "experimental": {
-      "plugins": [
-        [
-          "@swc/plugin-transform-imports",
-          {
-            "^(.*?)(\\.ts)$": {
-              "skipDefaultConversion": true,
-              "transform": "{{matches.[1]}}.js"
-            }
-          }
-        ]
-      ]
-    }
+    "rewriteRelativeImportExtensions": true
   },
   "module": {
     "type": "nodenext",

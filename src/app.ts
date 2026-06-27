@@ -1,5 +1,5 @@
-import GlinetController from "./controller.js";
-import { mqtt } from "./mqtt.js";
+import { mqtt } from "./mqtt.ts";
+import GlinetController from "./controller.ts";
 
 const isApi = !(
   process.env.GLINET_API === "false" || process.env.GLINET_API === "0"
@@ -11,7 +11,7 @@ await router.refresh();
 let closeServer: (() => Promise<void>) | undefined;
 
 if (isApi) {
-  const { default: GlinetApi } = await import("./api.js");
+  const { default: GlinetApi } = await import("./api.ts");
   const { closeServer: serverClose } = await GlinetApi(router);
   closeServer = serverClose;
 }
