@@ -2,14 +2,73 @@ import { describe, it, expect } from "vitest";
 import { mapDevices } from "../ha/devices";
 
 describe("mapDevices", () => {
-  const mockSystemInfo = {
-    sn: "TEST123",
-    board_info: {
-      hostname: "router",
-      model: "GL-MT3000",
-      architecture: "armv7",
+  const mockSystemInfo: SystemInfoResult = {
+    hardware_version: "",
+    vendor: "GL.iNet",
+    firmware_type: "release",
+    mac: "AA:BB:CC:DD:EE:FF",
+    sn: "test-serial-1234",
+    hidden_features: [],
+    hardware_feature: {
+      reset_button: "gpio-456",
+      nand: false,
+      bluetooth: false,
+      nowds: false,
+      screen: false,
+      wan: "eth0",
+      usb_reset: "",
+      submodel: "",
+      simo: false,
+      switch_button: "",
+      hwnat: true,
+      radio: "mt7981",
+      lan: "eth1",
+      rs485: false,
+      gps: false,
+      slot: "dual",
+      usb: "1-1.3",
+      build_in_modem: "0001:01:00.0",
+      noled: false,
+      modem_reset: 0,
+      microsd: "",
+      lcd_sched: false,
+      fan: true,
+      mcu: false,
+      usb_power: "",
     },
-    firmware_version: "3.200",
+    country_code: "",
+    software_feature: {
+      astrowarp_lite: false,
+      ipv6: true,
+      adguard: true,
+      obfuscation: false,
+      repeater_eap: false,
+      nas: true,
+      cellular_upgrade: true,
+      vpn: true,
+      ids_ips: false,
+      bark: false,
+      tor: true,
+      secondwan: true,
+      sms_forward: true,
+      mlo: false,
+      passthrough: false,
+      ksmbd: false,
+    },
+    cpu_num: 2,
+    board_info: {
+      architecture: "ARMv8 Processor rev 4",
+      hostname: "test-router",
+      kernel_version: "5.4.211",
+      openwrt_version: "OpenWrt 21.02-SNAPSHOT",
+      model: "GL.iNet GL-MT3000",
+    },
+    firmware_date: "2025-01-01 00:00:00",
+    model: "mt3000",
+    ddns: "test-ddns",
+    sn_bak: "test-serial-backup",
+    firmware_version: "4.8.3",
+    device_type: 3,
   };
 
   describe("null and undefined handling", () => {
@@ -100,7 +159,7 @@ describe("mapDevices", () => {
       const result = mapDevices(mockState, "GL-MT3000");
       if (result.sensor && result.sensor.length > 0) {
         const sensor = result.sensor[0];
-        expect(sensor.device?.identifiers).toContain("TEST123");
+        expect(sensor.device?.identifiers).toContain("test-serial-1234");
       }
     });
 
@@ -112,7 +171,7 @@ describe("mapDevices", () => {
       const result = mapDevices(mockState, "GL-MT3000");
       if (result.sensor && result.sensor.length > 0) {
         const sensor = result.sensor[0];
-        expect(sensor.device?.name).toBe("router");
+        expect(sensor.device?.name).toBe("test-router");
       }
     });
 
@@ -124,8 +183,8 @@ describe("mapDevices", () => {
       const result = mapDevices(mockState, "GL-MT3000");
       if (result.sensor && result.sensor.length > 0) {
         const sensor = result.sensor[0];
-        // Model is "GL-MT3000" with no space, so manufacturer gets the whole string
-        expect(sensor.device?.manufacturer).toBe("GL-MT3000");
+        // Model is "GL.iNet GL-MT3000" with space, so manufacturer is first part
+        expect(sensor.device?.manufacturer).toBe("GL.iNet");
       }
     });
 
@@ -137,8 +196,8 @@ describe("mapDevices", () => {
       const result = mapDevices(mockState, "GL-MT3000");
       if (result.sensor && result.sensor.length > 0) {
         const sensor = result.sensor[0];
-        // Model is "GL-MT3000" with no space, so model is undefined
-        expect(sensor.device?.model).toBeUndefined();
+        // Model is "GL.iNet GL-MT3000" with space, so model is second part
+        expect(sensor.device?.model).toBe("GL-MT3000");
       }
     });
 
@@ -150,7 +209,7 @@ describe("mapDevices", () => {
       const result = mapDevices(mockState, "GL-MT3000");
       if (result.sensor && result.sensor.length > 0) {
         const sensor = result.sensor[0];
-        expect(sensor.device?.serial_number).toBe("TEST123");
+        expect(sensor.device?.serial_number).toBe("test-serial-1234");
       }
     });
 
@@ -162,7 +221,7 @@ describe("mapDevices", () => {
       const result = mapDevices(mockState, "GL-MT3000");
       if (result.sensor && result.sensor.length > 0) {
         const sensor = result.sensor[0];
-        expect(sensor.device?.hw_version).toBe("armv7");
+        expect(sensor.device?.hw_version).toBe("ARMv8 Processor rev 4");
       }
     });
 
@@ -174,18 +233,18 @@ describe("mapDevices", () => {
       const result = mapDevices(mockState, "GL-MT3000");
       if (result.sensor && result.sensor.length > 0) {
         const sensor = result.sensor[0];
-        expect(sensor.device?.sw_version).toBe("3.200");
+        expect(sensor.device?.sw_version).toBe("4.8.3");
       }
     });
   });
 
   describe("edge cases", () => {
     it("handles missing board_info", () => {
-      const mockState = {
+      const mockState: GlinetState = {
         system_info: {
           sn: "TEST123",
           firmware_version: "3.200",
-        },
+        } as SystemInfoResult,
       };
 
       // This should throw because board_info is required
@@ -193,15 +252,15 @@ describe("mapDevices", () => {
     });
 
     it("handles missing firmware_version", () => {
-      const mockState = {
+      const mockState: GlinetState = {
         system_info: {
           sn: "TEST123",
           board_info: {
             hostname: "router",
             model: "GL-MT3000",
             architecture: "armv7",
-          },
-        },
+          } as SystemInfoResult['board_info'],
+        } as SystemInfoResult,
       };
 
       const result = mapDevices(mockState, "GL-MT3000");
@@ -209,16 +268,16 @@ describe("mapDevices", () => {
     });
 
     it("handles special characters in hostname", () => {
-      const mockState = {
+      const mockState: GlinetState = {
         system_info: {
           sn: "TEST123",
           board_info: {
             hostname: "router-with-dashes_and_underscores",
             model: "GL-MT3000",
             architecture: "armv7",
-          },
+          } as SystemInfoResult['board_info'],
           firmware_version: "3.200",
-        },
+        } as SystemInfoResult,
       };
 
       const result = mapDevices(mockState, "GL-MT3000");
@@ -226,16 +285,16 @@ describe("mapDevices", () => {
     });
 
     it("handles very long serial number", () => {
-      const mockState = {
+      const mockState: GlinetState = {
         system_info: {
           sn: "A".repeat(100),
           board_info: {
             hostname: "router",
             model: "GL-MT3000",
             architecture: "armv7",
-          },
+          } as SystemInfoResult['board_info'],
           firmware_version: "3.200",
-        },
+        } as SystemInfoResult,
       };
 
       const result = mapDevices(mockState, "GL-MT3000");
