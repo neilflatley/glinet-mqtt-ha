@@ -9,7 +9,7 @@ const mapDeviceAttribute = (json: any): Device => ({
   serial_number: json.sn,
   hw_version: json.board_info.architecture,
   sw_version: `${json.firmware_version}`,
-  configuration_url: '',
+  configuration_url: `http://${json.system.lan_ip}`,
 });
 
 export const mapDevices = (state: GlinetController["state"], model: string) => {
